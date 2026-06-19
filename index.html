@@ -351,24 +351,45 @@
         </div>
     </div>
 
+    <!-- CONFIRM RESET MODAL (no-print) -->
+    <div id="reset-modal" class="no-print fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                Konfirmasi Reset Data
+            </h3>
+            <p class="text-sm text-slate-400 mb-6">
+                Apakah Anda yakin ingin membatalkan seluruh perubahan dan mereset ke data contoh (dummy) bawaan? Tindakan ini akan menghapus data yang sedang Anda edit.
+            </p>
+            <div class="flex items-center justify-end gap-3">
+                <button onclick="closeResetModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white rounded-lg transition">
+                    Batal
+                </button>
+                <button onclick="proceedReset()" class="bg-red-600 hover:bg-red-500 text-white font-medium text-sm px-5 py-2 rounded-lg shadow-lg shadow-red-500/25 transition">
+                    Ya, Reset Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- LOGIKA UTAMA APLIKASI -->
     <script>
-        // Data Contoh Baku (Dummy Data) untuk Pengisian Awal (Hendra Maulidan)
+        // Data Contoh Baku (Dummy Data) yang telah dianonimkan demi privasi
         const defaultData = {
             personal: {
                 name: "Hendra Maulidan",
                 title: "Backend Engineer",
-                email: "hendra0maulidan@gmail.com",
-                phone: "+62 812-3456-7890",
-                location: "Batu, Indonesia",
+                email: "hendra.maulidan@example.com",
+                phone: "+62 812-0000-0000",
+                location: "Jakarta, Indonesia",
                 linkedin: "linkedin.com/in/hendra-maulidan-8bb2791a2/",
-                website: "ominddev.id",
-                summary: "Seorang Backend Engineer yang berfokus pada perancangan arsitektur server-side, manajemen basis data, dan optimalisasi sistem API. Berpengalaman dalam membangun infrastruktur aplikasi web yang aman, terukur, dan efisien. Terbiasa berkolaborasi dengan tim pengembangan dalam ekosistem agile demi menghadirkan solusi teknologi mutakhir yang berdampak positif."
+                website: "hendramaulidan.dev",
+                summary: "Seorang Backend Engineer berpengalaman yang berfokus pada perancangan arsitektur server-side, manajemen basis data, dan optimalisasi sistem API. Berpengalaman dalam membangun infrastruktur aplikasi web yang aman, terukur, dan efisien. Terbiasa berkolaborasi dengan tim pengembangan dalam ekosistem agile demi menghadirkan solusi teknologi mutakhir yang berdampak positif."
             },
             experience: [
                 {
                     id: 1,
-                    company: "PT Omind Muda Berkarya (ominddev.id)",
+                    company: "PT Solusi Teknologi Digital (solusitekno.id)",
                     role: "Backend Engineer",
                     period: "2023 - Sekarang",
                     description: "• Merancang dan memelihara arsitektur RESTful API performa tinggi menggunakan Node.js dan Express.\n• Mengoptimalkan kueri database untuk memangkas latensi transfer data dan meningkatkan efisiensi proses server-side.\n• Berkolaborasi aktif bersama tim frontend dan divisi produk dalam merilis pembaruan fitur yang andal secara rutin."
@@ -377,10 +398,10 @@
             education: [
                 {
                     id: 1,
-                    institution: "SMK Islam Batu",
+                    institution: "SMK Negeri 1 Jakarta",
                     degree: "Rekayasa Perangkat Lunak (RPL)",
                     period: "2020 - 2023",
-                    gpa: "Fokus Studi: Pengembangan Aplikasi Web & Struktur Data"
+                    gpa: "Fokus Studi: Pengembangan Aplikasi Web, Jaringan, & Struktur Data Dasar"
                 }
             ],
             skills: [
@@ -394,7 +415,7 @@
             projects: [
                 {
                     id: 1,
-                    name: "Sistem Manajemen Backend Ominddev",
+                    name: "Sistem Manajemen Backend Utama",
                     description: "Mengembangkan fondasi backend API terintegrasi yang menangani lalu lintas data internal secara aman dan efisien."
                 }
             ],
@@ -1057,14 +1078,23 @@
             showToast("Backup file JSON berhasil diunduh");
         }
 
+        /* --- MANAJEMEN MODAL RESET CUSTOM --- */
         function resetToDefault() {
-            const confirmReset = confirm("Apakah Anda yakin ingin membatalkan semua perubahan dan merestart dengan template baku?");
-            if (confirmReset) {
-                cvData = JSON.parse(JSON.stringify(defaultData));
-                saveState();
-                populateForm();
-                showToast("Template dikembalikan ke pengaturan awal");
-            }
+            document.getElementById('reset-modal').classList.remove('hidden');
+            document.getElementById('reset-modal').classList.add('flex');
+        }
+
+        function closeResetModal() {
+            document.getElementById('reset-modal').classList.remove('flex');
+            document.getElementById('reset-modal').classList.add('hidden');
+        }
+
+        function proceedReset() {
+            closeResetModal();
+            cvData = JSON.parse(JSON.stringify(defaultData));
+            saveState();
+            populateForm();
+            showToast("Template dikembalikan ke data dummy awal");
         }
     </script>
 </body>
