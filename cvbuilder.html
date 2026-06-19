@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembuat CV Interaktif & Ekspor PDF</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Desain Font Keluarga */
+        .font-sans-custom { font-family: 'Inter', sans-serif; }
+        .font-serif-custom { font-family: 'Lora', serif; }
+        .font-mono-custom { font-family: 'JetBrains Mono', monospace; }
+
+        /* Simulasi Kertas A4 untuk Pratinjau Desktop */
+        @media (min-width: 1024px) {
+            .paper-preview {
+                width: 210mm;
+                min-height: 297mm;
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            }
+        }
+
+        /* Aturan Cetak (Print to PDF) */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+            }
+            .paper-preview {
+                width: 210mm !important;
+                height: 297mm !important;
+                min-height: 297mm !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+                padding: 15mm !important; /* Margin cetak aman */
+                border: none !important;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+            }
+            /* Hilangkan header/footer bawaan browser jika memungkinkan */
+            @page {
+                size: A4;
+                margin: 0;
+            }
+        }
+
+        /* Custom Scrollbar untuk Panel Edit */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans-custom min-h-screen flex flex-col antialiased">
+
+    <!-- HEADER APLIKASI (no-print) -->
+    <header class="no-print bg-slate-950 border-b border-slate-800 sticky top-0 z-50 px-4 py-3 sm:px-6">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 rounded-lg text-white shadow-lg shadow-indigo-500/20">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">CV Builder <span class="bg-indigo-500/20 text-indigo-400 text-xs px-2 py-0.5 rounded font-normal">Interaktif</span></h1>
+                    <p class="text-xs text-slate-400">Sunting informasi Anda dan cetak langsung menjadi PDF berkualitas tinggi.</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="resetToDefault()" class="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition">
+                    Reset Template
+                </button>
+                <button onclick="exportData()" class="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition flex items-center gap-1.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Cadangkan Data
+                </button>
+                <button onclick="triggerPrint()" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-medium text-sm px-4 py-2 rounded-lg shadow-lg shadow-indigo-500/25 transition duration-150 flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Cetak & Simpan ke PDF
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE TABS INDICATOR (no-print) -->
+    <div class="no-print lg:hidden bg-slate-950 border-b border-slate-800 grid grid-cols-2 text-center sticky top-[61px] z-40">
+        <button id="btn-tab-edit" onclick="switchMobileTab('edit')" class="py-3 text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 bg-slate-900/50">
+            1. Sunting Data
+        </button>
+        <button id="btn-tab-preview" onclick="switchMobileTab('preview')" class="py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200">
+            2. Pratinjau & Tata Letak
+        </button>
+    </div>
+
+    <!-- MAIN AREA -->
+    <main class="flex-1 flex overflow-hidden min-h-[calc(100vh-61px)]">
+        
+        <!-- PANEL KIRI: FORM EDITOR (no-print) -->
+        <section id="panel-editor" class="no-print w-full lg:w-[45%] bg-slate-950 border-r border-slate-800 flex flex-col overflow-y-auto custom-scrollbar">
+            
+            <!-- PANEL SETTING DESAIN -->
+            <div class="p-4 sm:p-6 border-b border-slate-800 bg-slate-900/50">
+                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center gap-2">
+                    <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Pengaturan Tampilan CV
+                </h2>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <!-- Pilih Layout -->
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1.5">Pilih Template</label>
+                        <select onchange="updateDesignSetting('template', this.value)" class="w-full bg-slate-800 text-sm rounded-lg border border-slate-700 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="modern">Modern Two-Column</option>
+                            <option value="minimalist">Clean Minimalist</option>
+                            <option value="creative">Creative Compact</option>
+                        </select>
+                    </div>
+
+                    <!-- Pilih Warna -->
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1.5">Warna Aksen</label>
+                        <select id="color-select" onchange="updateDesignSetting('color', this.value)" class="w-full bg-slate-800 text-sm rounded-lg border border-slate-700 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="navy">Navy Professional</option>
+                            <option value="emerald">Emerald Fresh</option>
+                            <option value="indigo">Indigo Tech</option>
+                            <option value="crimson">Crimson Classic</option>
+                            <option value="slate">Slate Minimal</option>
+                        </select>
+                    </div>
+
+                    <!-- Pilih Font -->
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1.5">Gaya Tipografi</label>
+                        <select onchange="updateDesignSetting('font', this.value)" class="w-full bg-slate-800 text-sm rounded-lg border border-slate-700 px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <option value="sans">Sans Serif (Modern)</option>
+                            <option value="serif">Serif (Formal & Elegan)</option>
+                            <option value="mono">Monospace (Tech)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB FORM DATA DIRI -->
+            <div class="p-4 sm:p-6 space-y-8">
+                
+                <!-- DATA PRIBADI -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">1</span>
+                        Profil & Kontak Utama
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Nama Lengkap & Gelar</label>
+                            <input type="text" id="input-name" oninput="updatePersonal('name', this.value)" class="w-full bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Pekerjaan / Peran Profesional</label>
+                            <input type="text" id="input-title" oninput="updatePersonal('title', this.value)" class="w-full bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Email</label>
+                            <input type="email" id="input-email" oninput="updatePersonal('email', this.value)" class="w-full bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Nomor Telepon</label>
+                            <input type="text" id="input-phone" oninput="updatePersonal('phone', this.value)" class="w-full bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Lokasi (Kota, Negara)</label>
+                            <input type="text" id="input-location" oninput="updatePersonal('location', this.value)" class="w-full bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">LinkedIn URL</label>
+                            <input type="text" id="input-linkedin" oninput="updatePersonal('linkedin', this.value)" class="w-full bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Situs Web Pribadi / Portofolio (Opsional)</label>
+                        <input type="text" id="input-website" oninput="updatePersonal('website', this.value)" class="w-full bg-slate-800 rounded-lg border border-slate-700 px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Ringkasan Profesional (Max 4-5 kalimat)</label>
+                        <textarea id="input-summary" oninput="updatePersonal('summary', this.value)" rows="4" class="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 custom-scrollbar"></textarea>
+                    </div>
+                </div>
+
+                <!-- PENGALAMAN KERJA -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">2</span>
+                            Riwayat Pekerjaan
+                        </h3>
+                        <button onclick="addExperience()" class="text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            + Tambah Kerja
+                        </button>
+                    </div>
+                    
+                    <div id="experience-list-form" class="space-y-4">
+                        <!-- Generasi dinamis via JS -->
+                    </div>
+                </div>
+
+                <!-- PENDIDIKAN -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">3</span>
+                            Riwayat Pendidikan
+                        </h3>
+                        <button onclick="addEducation()" class="text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            + Tambah Pendidikan
+                        </button>
+                    </div>
+                    
+                    <div id="education-list-form" class="space-y-4">
+                        <!-- Generasi dinamis via JS -->
+                    </div>
+                </div>
+
+                <!-- KEAHLIAN -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-white border-b border-slate-800 pb-2 flex items-center gap-2">
+                        <span class="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">4</span>
+                        Keahlian / Skills
+                    </h3>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Tulis keahlian Anda (pisahkan dengan koma)</label>
+                        <textarea id="input-skills" oninput="updateSkills(this.value)" rows="3" class="w-full bg-slate-800 rounded-lg border border-slate-700 p-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 custom-scrollbar" placeholder="React, Node.js, Project Management, dll..."></textarea>
+                    </div>
+                </div>
+
+                <!-- BAHASA -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">5</span>
+                            Penguasaan Bahasa
+                        </h3>
+                        <button onclick="addLanguage()" class="text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            + Tambah Bahasa
+                        </button>
+                    </div>
+                    
+                    <div id="language-list-form" class="space-y-3">
+                        <!-- Generasi dinamis via JS -->
+                    </div>
+                </div>
+
+                <!-- PROYEK UTAMA -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            <span class="w-5 h-5 rounded-full bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xs">6</span>
+                            Proyek Unggulan (Opsional)
+                        </h3>
+                        <button onclick="addProject()" class="text-xs font-semibold bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 px-2.5 py-1 rounded transition flex items-center gap-1">
+                            + Tambah Proyek
+                        </button>
+                    </div>
+                    
+                    <div id="project-list-form" class="space-y-4">
+                        <!-- Generasi dinamis via JS -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- PANEL KANAN: PRATINJAU DOKUMEN CV -->
+        <section id="panel-preview" class="hidden lg:block w-full lg:w-[55%] bg-slate-800 p-4 sm:p-8 overflow-y-auto custom-scrollbar flex items-center justify-center">
+            
+            <div class="print-container">
+                <!-- TEMPLATE KERTAS A4 -->
+                <div id="paper" class="paper-preview bg-white text-slate-800 p-12 relative transition-all duration-300 font-sans-custom">
+                    <!-- Muatan CV akan disuntikkan secara dinamis menggunakan JS berdasarkan template terpilih -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- TOAST NOTIFICATION (no-print) -->
+    <div id="toast" class="no-print fixed bottom-5 right-5 bg-emerald-500 text-white px-4 py-3 rounded-lg shadow-xl opacity-0 transform translate-y-2 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+        <span id="toast-message">Data berhasil diperbarui</span>
+    </div>
+
+    <!-- PETUNJUK EKSPOR PDF MODAL (no-print) -->
+    <div id="print-modal" class="no-print fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Panduan Cetak / Ekspor PDF
+            </h3>
+            <p class="text-sm text-slate-400 mb-4">
+                Untuk hasil CV terbaik dengan tata letak profesional, harap atur parameter berikut di dialog cetak browser Anda:
+            </p>
+            <ul class="text-xs space-y-2.5 text-slate-300 mb-6 bg-slate-950 p-4 rounded-lg border border-slate-800">
+                <li class="flex items-start gap-2">
+                    <span class="text-indigo-400 font-bold">1.</span>
+                    <span>Pilih Tujuan (**Destination**): **Simpan sebagai PDF (Save as PDF)**.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-indigo-400 font-bold">2.</span>
+                    <span>Ukuran Kertas (**Paper Size**): Pastikan disetel ke **A4**.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-indigo-400 font-bold">3.</span>
+                    <span>Margin: Disarankan disetel ke **Tidak Ada (None)** atau **Default**.</span>
+                </li>
+                <li class="flex items-start gap-2">
+                    <span class="text-indigo-400 font-bold">4.</span>
+                    <span>Opsi Tambahan: **Centang** pilihan **Grafik Latar Belakang (Background Graphics)** agar elemen warna CV muncul sempurna.</span>
+                </li>
+            </ul>
+            <div class="flex items-center justify-end gap-3">
+                <button onclick="closePrintModal()" class="px-4 py-2 text-sm font-medium text-slate-400 hover:text-white rounded-lg transition">
+                    Batal
+                </button>
+                <button onclick="proceedToPrint()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-2 rounded-lg shadow-lg shadow-indigo-500/25 transition">
+                    Mulai Cetak Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIKA UTAMA APLIKASI -->
+    <script>
+        // Data Contoh Baku (Dummy Data) untuk Pengisian Awal
+        const defaultData = {
+            personal: {
+                name: "Budi Santoso, S.Kom",
+                title: "Senior Full Stack Developer",
+                email: "budi.santoso@email.com",
+                phone: "+62 812-3456-7890",
+                location: "Jakarta, Indonesia",
+                linkedin: "linkedin.com/in/budisantoso",
+                website: "budisantoso.dev",
+                summary: "Seorang Full Stack Developer berpengalaman lebih dari 5 tahun dalam membangun aplikasi web yang skalabel dan efisien. Ahli dalam menggunakan ekosistem JavaScript (React, Node.js) dan arsitektur cloud. Berkomitmen tinggi untuk menulis kode yang bersih, terdokumentasi dengan baik, serta berkolaborasi dalam tim agile untuk menghadirkan solusi digital berkualitas tinggi."
+            },
+            experience: [
+                {
+                    id: 1,
+                    company: "PT Solusi Teknologi Nusantara",
+                    role: "Lead Full Stack Developer",
+                    period: "2022 - Sekarang",
+                    description: "• Memimpin tim berisi 5 developer untuk membangun platform e-commerce utama menggunakan Next.js dan Node.js, meningkatkan kecepatan pemuatan halaman sebesar 40%.\n• Mengurangi biaya infrastruktur AWS sebesar 25% melalui optimalisasi arsitektur serverless.\n• Mengimplementasikan CI/CD pipelines yang mengurangi waktu deployment sebesar 70%."
+                },
+                {
+                    id: 2,
+                    company: "Creative Digital Studio",
+                    role: "Backend Engineer",
+                    period: "2020 - 2022",
+                    description: "• Merancang dan memelihara RESTful API dengan Express.js untuk aplikasi seluler dengan 100k+ pengguna aktif bulanan.\n• Mengoptimalkan query database PostgreSQL, menghasilkan pengurangan latensi API rata-rata sebesar 150ms.\n• Berkolaborasi dengan tim UI/UX untuk integrasi fitur interaktif baru secara berkala."
+                }
+            ],
+            education: [
+                {
+                    id: 1,
+                    institution: "Universitas Indonesia",
+                    degree: "Sarjana Komputer (S.Kom), Teknik Informatika",
+                    period: "2016 - 2020",
+                    gpa: "IPK: 3.75 / 4.00 (Cum Laude)"
+                }
+            ],
+            skills: [
+                "JavaScript (ES6+)", "React.js / Next.js", "Node.js / Express", "Python & Django",
+                "PostgreSQL & MongoDB", "Tailwind CSS", "Docker & AWS", "Git & CI/CD",
+                "Manajemen Tim Agile"
+            ],
+            languages: [
+                { id: 1, name: "Bahasa Indonesia", level: "Native / Bilingual" },
+                { id: 2, name: "Bahasa Inggris", level: "Profesional (TOEFL: 580)" }
+            ],
+            projects: [
+                {
+                    id: 1,
+                    name: "Sistem Manajemen Inventaris Pintar",
+                    description: "Aplikasi web berbasis React dan Node.js untuk melacak inventaris gudang secara real-time menggunakan integrasi barcode scan."
+                }
+            ],
+            design: {
+                template: "modern",
+                color: "navy",
+                font: "sans"
+            }
+        };
+
+        // Memuat data dari local storage jika tersedia, jika tidak pakai default
+        let cvData = JSON.parse(localStorage.getItem('cv_builder_data')) || JSON.parse(JSON.stringify(defaultData));
+
+        // Konfigurasi Warna Aksen
+        const colorPalette = {
+            navy: { primary: "#1e3a8a", secondary: "#3b82f6", textMuted: "#475569", bgLight: "#f0f4f8" },
+            emerald: { primary: "#064e3b", secondary: "#10b981", textMuted: "#4b5563", bgLight: "#ecfdf5" },
+            indigo: { primary: "#312e81", secondary: "#6366f1", textMuted: "#4b5563", bgLight: "#e0e7ff" },
+            crimson: { primary: "#7f1d1d", secondary: "#ef4444", textMuted: "#4b5563", bgLight: "#fef2f2" },
+            slate: { primary: "#0f172a", secondary: "#64748b", textMuted: "#64748b", bgLight: "#f8fafc" }
+        };
+
+        // Inisialisasi awal saat dokumen siap
+        window.onload = function() {
+            populateForm();
+            renderPreview();
+        };
+
+        // Navigasi Tab Mobile
+        function switchMobileTab(tab) {
+            const btnEdit = document.getElementById('btn-tab-edit');
+            const btnPreview = document.getElementById('btn-tab-preview');
+            const panelEditor = document.getElementById('panel-editor');
+            const panelPreview = document.getElementById('panel-preview');
+
+            if (tab === 'edit') {
+                btnEdit.className = "py-3 text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 bg-slate-900/50";
+                btnPreview.className = "py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+                panelEditor.classList.remove('hidden');
+                panelPreview.classList.add('hidden');
+            } else {
+                btnPreview.className = "py-3 text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 bg-slate-900/50";
+                btnEdit.className = "py-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200";
+                panelEditor.classList.add('hidden');
+                panelPreview.classList.remove('hidden');
+            }
+        }
+
+        // Menyimpan data ke Local Storage & memperbarui Pratinjau
+        function saveState() {
+            localStorage.setItem('cv_builder_data', JSON.stringify(cvData));
+            renderPreview();
+        }
+
+        // Memunculkan Pesan Toast Singkat
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = message;
+            toast.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // Sinkronisasi data ke elemen-elemen formulir
+        function populateForm() {
+            // Data Pribadi
+            document.getElementById('input-name').value = cvData.personal.name || '';
+            document.getElementById('input-title').value = cvData.personal.title || '';
+            document.getElementById('input-email').value = cvData.personal.email || '';
+            document.getElementById('input-phone').value = cvData.personal.phone || '';
+            document.getElementById('input-location').value = cvData.personal.location || '';
+            document.getElementById('input-linkedin').value = cvData.personal.linkedin || '';
+            document.getElementById('input-website').value = cvData.personal.website || '';
+            document.getElementById('input-summary').value = cvData.personal.summary || '';
+
+            // Desain Selectors
+            document.getElementById('color-select').value = cvData.design?.color || 'navy';
+
+            // Keahlian
+            document.getElementById('input-skills').value = cvData.skills.join(', ');
+
+            // Tampilkan list dinamis
+            renderExperienceForm();
+            renderEducationForm();
+            renderLanguageForm();
+            renderProjectForm();
+        }
+
+        /* --- UPDATER FUNGSI FIELD --- */
+        function updatePersonal(field, value) {
+            cvData.personal[field] = value;
+            saveState();
+        }
+
+        function updateDesignSetting(field, value) {
+            if (!cvData.design) cvData.design = {};
+            cvData.design[field] = value;
+            saveState();
+        }
+
+        function updateSkills(value) {
+            cvData.skills = value.split(',').map(skill => skill.trim()).filter(skill => skill !== '');
+            saveState();
+        }
+
+        /* --- MANAJEMEN RIWAYAT PENGALAMAN --- */
+        function renderExperienceForm() {
+            const container = document.getElementById('experience-list-form');
+            container.innerHTML = '';
+            cvData.experience.forEach((exp, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3 relative";
+                card.innerHTML = `
+                    <button onclick="removeExperience(${exp.id})" class="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition" title="Hapus">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Perusahaan</label>
+                            <input type="text" value="${exp.company}" oninput="updateExperience(${exp.id}, 'company', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Jabatan</label>
+                            <input type="text" value="${exp.role}" oninput="updateExperience(${exp.id}, 'role', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Periode Kerja (contoh: 2022 - Sekarang)</label>
+                        <input type="text" value="${exp.period}" oninput="updateExperience(${exp.id}, 'period', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Deskripsi & Pencapaian (Gunakan • untuk poin baru)</label>
+                        <textarea oninput="updateExperience(${exp.id}, 'description', this.value)" rows="3" class="w-full bg-slate-800 rounded border border-slate-700 p-2 text-white text-xs focus:ring-1 focus:ring-indigo-500 custom-scrollbar">${exp.description}</textarea>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addExperience() {
+            const newExp = {
+                id: Date.now(),
+                company: "Nama Perusahaan Baru",
+                role: "Jabatan Anda",
+                period: "2024",
+                description: "• Tuliskan tanggung jawab utama Anda di sini.\n• Jelaskan pencapaian terukur yang Anda raih."
+            };
+            cvData.experience.push(newExp);
+            saveState();
+            renderExperienceForm();
+            showToast("Riwayat pekerjaan berhasil ditambah");
+        }
+
+        function updateExperience(id, key, value) {
+            const index = cvData.experience.findIndex(exp => exp.id === id);
+            if (index !== -1) {
+                cvData.experience[index][key] = value;
+                saveState();
+            }
+        }
+
+        function removeExperience(id) {
+            cvData.experience = cvData.experience.filter(exp => exp.id !== id);
+            saveState();
+            renderExperienceForm();
+            showToast("Riwayat pekerjaan berhasil dihapus");
+        }
+
+        /* --- MANAJEMEN RIWAYAT PENDIDIKAN --- */
+        function renderEducationForm() {
+            const container = document.getElementById('education-list-form');
+            container.innerHTML = '';
+            cvData.education.forEach((edu) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3 relative";
+                card.innerHTML = `
+                    <button onclick="removeEducation(${edu.id})" class="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition" title="Hapus">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Sekolah / Universitas</label>
+                            <input type="text" value="${edu.institution}" oninput="updateEducation(${edu.id}, 'institution', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Gelar / Jurusan</label>
+                            <input type="text" value="${edu.degree}" oninput="updateEducation(${edu.id}, 'degree', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Tahun Kelulusan</label>
+                            <input type="text" value="${edu.period}" oninput="updateEducation(${edu.id}, 'period', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">IPK / Keterangan Nilai</label>
+                            <input type="text" value="${edu.gpa || ''}" oninput="updateEducation(${edu.id}, 'gpa', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500" placeholder="Contoh: IPK 3.80/4.00">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addEducation() {
+            const newEdu = {
+                id: Date.now(),
+                institution: "Universitas / Institusi Baru",
+                degree: "Gelar / Program Studi",
+                period: "2020 - 2024",
+                gpa: ""
+            };
+            cvData.education.push(newEdu);
+            saveState();
+            renderEducationForm();
+            showToast("Riwayat pendidikan berhasil ditambah");
+        }
+
+        function updateEducation(id, key, value) {
+            const index = cvData.education.findIndex(edu => edu.id === id);
+            if (index !== -1) {
+                cvData.education[index][key] = value;
+                saveState();
+            }
+        }
+
+        function removeEducation(id) {
+            cvData.education = cvData.education.filter(edu => edu.id !== id);
+            saveState();
+            renderEducationForm();
+            showToast("Riwayat pendidikan berhasil dihapus");
+        }
+
+        /* --- MANAJEMEN RIWAYAT BAHASA --- */
+        function renderLanguageForm() {
+            const container = document.getElementById('language-list-form');
+            container.innerHTML = '';
+            cvData.languages.forEach((lang) => {
+                const row = document.createElement('div');
+                row.className = "flex items-center gap-3 bg-slate-900 p-2.5 rounded border border-slate-800 relative";
+                row.innerHTML = `
+                    <div class="flex-1">
+                        <input type="text" value="${lang.name}" oninput="updateLanguage(${lang.id}, 'name', this.value)" placeholder="Nama Bahasa" class="w-full bg-slate-800 rounded border border-slate-700 px-2.5 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                    </div>
+                    <div class="flex-1">
+                        <input type="text" value="${lang.level}" oninput="updateLanguage(${lang.id}, 'level', this.value)" placeholder="Tingkat Kemahiran" class="w-full bg-slate-800 rounded border border-slate-700 px-2.5 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                    </div>
+                    <button onclick="removeLanguage(${lang.id})" class="text-slate-500 hover:text-red-400 transition pr-1" title="Hapus">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function addLanguage() {
+            const newLang = {
+                id: Date.now(),
+                name: "Bahasa Baru",
+                level: "Fasih / Tingkat Menengah"
+            };
+            cvData.languages.push(newLang);
+            saveState();
+            renderLanguageForm();
+            showToast("Bahasa berhasil ditambah");
+        }
+
+        function updateLanguage(id, key, value) {
+            const index = cvData.languages.findIndex(lang => lang.id === id);
+            if (index !== -1) {
+                cvData.languages[index][key] = value;
+                saveState();
+            }
+        }
+
+        function removeLanguage(id) {
+            cvData.languages = cvData.languages.filter(lang => lang.id !== id);
+            saveState();
+            renderLanguageForm();
+            showToast("Bahasa berhasil dihapus");
+        }
+
+        /* --- MANAJEMEN PROYEK UTAMA --- */
+        function renderProjectForm() {
+            const container = document.getElementById('project-list-form');
+            container.innerHTML = '';
+            if (!cvData.projects) cvData.projects = [];
+            cvData.projects.forEach((proj) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3 relative";
+                card.innerHTML = `
+                    <button onclick="removeProject(${proj.id})" class="absolute top-3 right-3 text-slate-500 hover:text-red-400 transition" title="Hapus">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Nama Proyek</label>
+                        <input type="text" value="${proj.name}" oninput="updateProject(${proj.id}, 'name', this.value)" class="w-full bg-slate-800 rounded border border-slate-700 px-2 py-1 text-white text-xs focus:ring-1 focus:ring-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-400 mb-1">Keterangan / Detail Singkat Proyek</label>
+                        <textarea oninput="updateProject(${proj.id}, 'description', this.value)" rows="2" class="w-full bg-slate-800 rounded border border-slate-700 p-2 text-white text-xs focus:ring-1 focus:ring-indigo-500 custom-scrollbar">${proj.description}</textarea>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function addProject() {
+            if (!cvData.projects) cvData.projects = [];
+            const newProj = {
+                id: Date.now(),
+                name: "Proyek Baru",
+                description: "Tuliskan deskripsi singkat mengenai teknologi yang dipakai dan dampak proyek tersebut."
+            };
+            cvData.projects.push(newProj);
+            saveState();
+            renderProjectForm();
+            showToast("Proyek berhasil ditambah");
+        }
+
+        function updateProject(id, key, value) {
+            const index = cvData.projects.findIndex(proj => proj.id === id);
+            if (index !== -1) {
+                cvData.projects[index][key] = value;
+                saveState();
+            }
+        }
+
+        function removeProject(id) {
+            cvData.projects = cvData.projects.filter(proj => proj.id !== id);
+            saveState();
+            renderProjectForm();
+            showToast("Proyek berhasil dihapus");
+        }
+
+        /* --- FUNGSI UTAMA RENDERING TEMPLATE --- */
+        function renderPreview() {
+            const paper = document.getElementById('paper');
+            const template = cvData.design?.template || 'modern';
+            const colorName = cvData.design?.color || 'navy';
+            const fontStyle = cvData.design?.font || 'sans';
+
+            // Terapkan Font
+            paper.className = "paper-preview bg-white text-slate-800 p-12 relative transition-all duration-300";
+            if (fontStyle === 'serif') paper.classList.add('font-serif-custom');
+            else if (fontStyle === 'mono') paper.classList.add('font-mono-custom');
+            else paper.classList.add('font-sans-custom');
+
+            // Warna Aksen Aktif
+            const palette = colorPalette[colorName] || colorPalette.navy;
+
+            // Membangun Komponen-Komponen Teks HTML
+            const emailHTML = cvData.personal.email ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> ${cvData.personal.email}</span>` : '';
+            const phoneHTML = cvData.personal.phone ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> ${cvData.personal.phone}</span>` : '';
+            const locHTML = cvData.personal.location ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg> ${cvData.personal.location}</span>` : '';
+            const linkedinHTML = cvData.personal.linkedin ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg> ${cvData.personal.linkedin}</span>` : '';
+            const webHTML = cvData.personal.website ? `<span class="flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg> ${cvData.personal.website}</span>` : '';
+
+            // Bagian Pengalaman Kerja
+            let experienceHTML = '';
+            cvData.experience.forEach(exp => {
+                const formattedDesc = exp.description.replace(/\n/g, '<br>');
+                experienceHTML += `
+                    <div class="mb-5 break-inside-avoid">
+                        <div class="flex justify-between items-start mb-1">
+                            <div>
+                                <h4 class="font-bold text-sm text-slate-800">${exp.role}</h4>
+                                <p class="text-xs font-semibold" style="color: ${palette.secondary}">${exp.company}</p>
+                            </div>
+                            <span class="text-xs font-medium text-slate-500 whitespace-nowrap bg-slate-100 px-2 py-0.5 rounded">${exp.period}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-600 leading-relaxed text-justify">${formattedDesc}</p>
+                    </div>
+                `;
+            });
+
+            // Bagian Pendidikan
+            let educationHTML = '';
+            cvData.education.forEach(edu => {
+                educationHTML += `
+                    <div class="mb-4 break-inside-avoid">
+                        <div class="flex justify-between items-start mb-0.5">
+                            <h4 class="font-bold text-xs text-slate-800">${edu.degree}</h4>
+                            <span class="text-xs text-slate-500 whitespace-nowrap">${edu.period}</span>
+                        </div>
+                        <p class="text-xs text-slate-600">${edu.institution}</p>
+                        ${edu.gpa ? `<p class="text-[10px] font-semibold italic text-slate-500">${edu.gpa}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            // Bagian Proyek
+            let projectsHTML = '';
+            if (cvData.projects && cvData.projects.length > 0) {
+                cvData.projects.forEach(proj => {
+                    projectsHTML += `
+                        <div class="mb-3 break-inside-avoid">
+                            <h4 class="font-bold text-xs text-slate-800">${proj.name}</h4>
+                            <p class="text-[11px] text-slate-600 leading-relaxed">${proj.description}</p>
+                        </div>
+                    `;
+                });
+            }
+
+            // Bagian Bahasa
+            let languagesHTML = '';
+            cvData.languages.forEach(lang => {
+                languagesHTML += `
+                    <div class="flex justify-between text-xs mb-1.5 break-inside-avoid">
+                        <span class="font-medium text-slate-700">${lang.name}</span>
+                        <span class="text-slate-500 italic text-[11px]">${lang.level}</span>
+                    </div>
+                `;
+            });
+
+            // Bagian Keahlian
+            const skillsHTML = cvData.skills.map(skill => `
+                <span class="inline-block text-[10px] font-medium bg-slate-100 text-slate-800 px-2.5 py-1 rounded-md border border-slate-200">${skill}</span>
+            `).join('');
+
+            /* --- PEMILIHAN TEMPLATE STRUKTUR --- */
+            if (template === 'modern') {
+                // Template Modern: Two Column (Left narrow, Right broad)
+                paper.innerHTML = `
+                    <div class="grid grid-cols-12 gap-8 h-full">
+                        
+                        <!-- LEFT NARROW COLUMN (35%) -->
+                        <div class="col-span-4 border-r border-slate-150 pr-6 space-y-6">
+                            
+                            <!-- Header Nama di Sidebar Kiri -->
+                            <div class="space-y-1.5 pb-4 border-b border-slate-150">
+                                <h1 class="text-xl font-extrabold tracking-tight" style="color: ${palette.primary}">${cvData.personal.name}</h1>
+                                <p class="text-xs font-semibold uppercase tracking-wider" style="color: ${palette.secondary}">${cvData.personal.title}</p>
+                            </div>
+
+                            <!-- Kontak Detail -->
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider mb-3 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Kontak</h3>
+                                <div class="space-y-2 text-[11px] text-slate-600 break-all">
+                                    ${emailHTML}
+                                    ${phoneHTML}
+                                    ${locHTML}
+                                    ${linkedinHTML}
+                                    ${webHTML}
+                                </div>
+                            </div>
+
+                            <!-- Pendidikan -->
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider mb-3 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Pendidikan</h3>
+                                <div class="space-y-3">
+                                    ${educationHTML}
+                                </div>
+                            </div>
+
+                            <!-- Keahlian -->
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider mb-3 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Keahlian</h3>
+                                <div class="flex flex-wrap gap-1.5">
+                                    ${skillsHTML}
+                                </div>
+                            </div>
+
+                            <!-- Bahasa -->
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider mb-3 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Bahasa</h3>
+                                ${languagesHTML}
+                            </div>
+
+                        </div>
+
+                        <!-- RIGHT BROAD COLUMN (65%) -->
+                        <div class="col-span-8 space-y-6">
+                            
+                            <!-- Profil Singkat / Summary -->
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider mb-2.5 pb-1 border-b-2" style="color: ${palette.primary}; border-color: ${palette.primary}">Profil Profesional</h3>
+                                <p class="text-[11px] text-slate-600 leading-relaxed text-justify">${cvData.personal.summary}</p>
+                            </div>
+
+                            <!-- Pengalaman Kerja -->
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider mb-3 pb-1 border-b-2" style="color: ${palette.primary}; border-color: ${palette.primary}">Pengalaman Kerja</h3>
+                                ${experienceHTML}
+                            </div>
+
+                            <!-- Proyek Unggulan (Jika ada) -->
+                            ${cvData.projects && cvData.projects.length > 0 ? `
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-wider mb-3 pb-1 border-b-2" style="color: ${palette.primary}; border-color: ${palette.primary}">Proyek Unggulan</h3>
+                                ${projectsHTML}
+                            </div>
+                            ` : ''}
+
+                        </div>
+
+                    </div>
+                `;
+            } else if (template === 'minimalist') {
+                // Template Minimalist: Full single-column clean design
+                paper.innerHTML = `
+                    <div class="space-y-6">
+                        
+                        <!-- Header Atas Penuh -->
+                        <div class="text-center space-y-2 pb-6 border-b border-slate-200">
+                            <h1 class="text-2xl font-extrabold tracking-wide uppercase" style="color: ${palette.primary}">${cvData.personal.name}</h1>
+                            <p class="text-xs uppercase tracking-widest font-medium" style="color: ${palette.secondary}">${cvData.personal.title}</p>
+                            
+                            <div class="flex flex-wrap justify-center gap-x-4 gap-y-1.5 text-[11px] text-slate-500 pt-2 font-medium">
+                                ${emailHTML}
+                                ${phoneHTML}
+                                ${locHTML}
+                                ${linkedinHTML}
+                                ${webHTML}
+                            </div>
+                        </div>
+
+                        <!-- Profil Singkat -->
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-widest mb-2" style="color: ${palette.primary}">Ringkasan Eksekutif</h3>
+                            <p class="text-[11px] text-slate-600 leading-relaxed text-justify">${cvData.personal.summary}</p>
+                        </div>
+
+                        <!-- Pengalaman Kerja -->
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-widest mb-3 border-b-2 pb-0.5" style="color: ${palette.primary}; border-color: ${palette.primary}">Riwayat Profesional</h3>
+                            ${experienceHTML}
+                        </div>
+
+                        <!-- Pendidikan -->
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-widest mb-3 border-b-2 pb-0.5" style="color: ${palette.primary}; border-color: ${palette.primary}">Pendidikan Resmi</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                ${educationHTML}
+                            </div>
+                        </div>
+
+                        <!-- Kompetensi & Keahlian -->
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-widest mb-3 border-b-2 pb-0.5" style="color: ${palette.primary}; border-color: ${palette.primary}">Keahlian Utama</h3>
+                            <div class="flex flex-wrap gap-1.5">
+                                ${skillsHTML}
+                            </div>
+                        </div>
+
+                        <!-- Kolom Bawah Ganda: Bahasa & Proyek -->
+                        <div class="grid grid-cols-2 gap-6 pt-2">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-widest mb-2.5 pb-0.5 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Bahasa</h3>
+                                ${languagesHTML}
+                            </div>
+                            <div>
+                                ${cvData.projects && cvData.projects.length > 0 ? `
+                                    <h3 class="text-xs font-bold uppercase tracking-widest mb-2.5 pb-0.5 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Proyek Pilihan</h3>
+                                    ${projectsHTML}
+                                ` : ''}
+                            </div>
+                        </div>
+
+                    </div>
+                `;
+            } else if (template === 'creative') {
+                // Template Creative: Compact structure with elegant colored accent blocks
+                paper.innerHTML = `
+                    <div class="space-y-5">
+                        
+                        <!-- Header Banner Creative -->
+                        <div class="p-6 rounded-lg text-white flex flex-col justify-center space-y-1.5" style="background-color: ${palette.primary}">
+                            <h1 class="text-2xl font-black tracking-tight">${cvData.personal.name}</h1>
+                            <p class="text-xs tracking-wider uppercase font-semibold opacity-90" style="color: ${palette.secondary}">${cvData.personal.title}</p>
+                            <div class="flex flex-wrap gap-x-4 gap-y-1 text-[10px] text-white/80 pt-2.5">
+                                ${emailHTML}
+                                ${phoneHTML}
+                                ${locHTML}
+                                ${linkedinHTML}
+                                ${webHTML}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-12 gap-6">
+                            
+                            <!-- Left: 60% (Riwayat Pekerjaan & Proyek) -->
+                            <div class="col-span-7 space-y-5">
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider mb-2.5 px-2 py-1 rounded" style="background-color: ${palette.bgLight}; color: ${palette.primary}">Pengalaman Kerja</h3>
+                                    ${experienceHTML}
+                                </div>
+                                
+                                ${cvData.projects && cvData.projects.length > 0 ? `
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider mb-2.5 px-2 py-1 rounded" style="background-color: ${palette.bgLight}; color: ${palette.primary}">Proyek</h3>
+                                    ${projectsHTML}
+                                </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Right: 40% (Ringkasan, Pendidikan, Kompetensi) -->
+                            <div class="col-span-5 space-y-5">
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider mb-2 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Tentang Saya</h3>
+                                    <p class="text-[10px] text-slate-600 leading-relaxed text-justify">${cvData.personal.summary}</p>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider mb-2 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Pendidikan</h3>
+                                    ${educationHTML}
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider mb-2.5 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Keahlian</h3>
+                                    <div class="flex flex-wrap gap-1">
+                                        ${skillsHTML}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <h3 class="text-xs font-bold uppercase tracking-wider mb-2.5 pb-1 border-b" style="color: ${palette.primary}; border-color: ${palette.secondary}">Bahasa</h3>
+                                    ${languagesHTML}
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+            }
+        }
+
+        /* --- FUNGSI PRINT TO PDF --- */
+        function triggerPrint() {
+            document.getElementById('print-modal').classList.remove('hidden');
+            document.getElementById('print-modal').classList.add('flex');
+        }
+
+        function closePrintModal() {
+            document.getElementById('print-modal').classList.remove('flex');
+            document.getElementById('print-modal').classList.add('hidden');
+        }
+
+        function proceedToPrint() {
+            closePrintModal();
+            // Pindahkan fokus tab ke pratinjau agar siap dicetak di perangkat mobile
+            switchMobileTab('preview');
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        /* --- CADANGAN DATA (IMPORT/EXPORT JSON) --- */
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cvData, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `Data_CV_${cvData.personal.name.replace(/\s+/g, '_')}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Backup file JSON berhasil diunduh");
+        }
+
+        function resetToDefault() {
+            const confirmReset = confirm("Apakah Anda yakin ingin membatalkan semua perubahan dan merestart dengan template baku?");
+            if (confirmReset) {
+                cvData = JSON.parse(JSON.stringify(defaultData));
+                saveState();
+                populateForm();
+                showToast("Template dikembalikan ke pengaturan awal");
+            }
+        }
+    </script>
+</body>
+</html>
