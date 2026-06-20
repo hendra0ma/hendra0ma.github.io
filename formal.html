@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formal Letter Generator - Professional Letter Builder</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f5ff',
+                            100: '#e0ebff',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                            900: '#1e3a8a',
+                        },
+                    },
+                    fontFamily: {
+                        'serif-formal': ['"Times New Roman"', 'Georgia', 'serif'],
+                        'sans-formal': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono-formal': ['Courier New', 'Courier', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts for modern styling -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    
+    <!-- html-docx-js for exporting to native editable Word files -->
+    <script src="https://cdn.jsdelivr.net/npm/html-docx-js@0.3.1/dist/html-docx.min.js"></script>
+
+    <style>
+        /* Desain Kertas Cetak A4 Standard Rasio di Browser */
+        .paper-preview {
+            width: 794px; /* Standar Lebar A4 pada 96 DPI */
+            min-height: 1123px; /* Standar Tinggi A4 pada 96 DPI */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            background: white;
+            transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        /* Border Kop Surat Ganda */
+        .kop-line {
+            border: none;
+            border-top: 3px solid #000;
+            border-bottom: 1px solid #000;
+            height: 5px;
+            margin-top: 8px;
+            margin-bottom: 16px;
+        }
+
+        /* Sembunyikan scrollbar di panel kontrol */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+
+        /* Optimasi Cetak (Print Media Query) */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-area {
+                width: 210mm !important;
+                height: 297mm !important;
+                max-width: 100% !important;
+                box-shadow: none !important;
+                border: none !important;
+                margin: 0 !important;
+                padding: 2.5cm 2cm 2.5cm 3cm !important; /* Margin resmi surat dinas Indonesia */
+                transform: scale(1) !important;
+                transform-origin: top left !important;
+            }
+            #paper-container {
+                min-height: auto !important;
+                height: auto !important;
+                padding: 0 !important;
+            }
+            /* Menghindari halaman kosong di akhir cetakan */
+            html, body {
+                height: 100%;
+                overflow: visible !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- Top Navigation (Header) -->
+    <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="p-2 bg-blue-600 rounded-lg text-white">
+                <i data-lucide="file-text" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-slate-900 tracking-tight">Formal Letter Generator</h1>
+                <p class="text-xs text-slate-500">Generator Surat Formal & Administrasi Instansi Standar Indonesia</p>
+            </div>
+        </div>
+        
+        <div class="flex items-center flex-wrap gap-2 md:gap-3 justify-center md:justify-end">
+            <!-- Reset Button -->
+            <button onclick="resetFormToDefault()" class="flex items-center space-x-1.5 px-2.5 py-2 text-xs md:text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                <span>Reset Form</span>
+            </button>
+
+            <!-- Export Docx Button -->
+            <button onclick="exportToWord()" class="flex items-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs md:text-sm rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5">
+                <i data-lucide="file-down" class="w-4 h-4"></i>
+                <span>Unduh Word (.docx)</span>
+            </button>
+            
+            <!-- Quick Print -->
+            <button onclick="window.print()" class="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs md:text-sm rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+                <span>Cetak / Simpan PDF</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Mobile Tab Navigation (Only visible on screens < lg) -->
+    <div class="no-print lg:hidden bg-slate-950 p-2 border-b border-slate-800 sticky top-[73px] z-40">
+        <div class="bg-slate-900 p-1 rounded-xl flex max-w-md mx-auto relative">
+            <button id="btn-tab-form" onclick="switchMobileTab('form')" class="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow transition-all duration-200">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                <span>Edit Form</span>
+            </button>
+            <button id="btn-tab-preview" onclick="switchMobileTab('preview')" class="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg text-slate-400 text-xs font-semibold hover:text-slate-200 transition-all duration-200">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+                <span>Pratinjau Surat</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col lg:flex-row h-[calc(100vh-73px)] lg:h-[calc(100vh-73px)] overflow-hidden">
+        
+        <!-- Left Panel: Input & Settings (Scrollable) -->
+        <section id="panel-form" class="no-print w-full lg:w-[45%] bg-slate-900 text-slate-100 flex flex-col h-full border-r border-slate-800">
+            <!-- Top Controls: Template Selector & Style Settings -->
+            <div class="p-4 bg-slate-950 border-b border-slate-800 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div class="w-full">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Pilih Format / Jenis Surat</label>
+                        <div class="relative">
+                            <select id="letter-template-select" onchange="loadTemplate(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
+                                <option value="lamaran" class="bg-slate-900 text-white" selected>Surat Lamaran Kerja</option>
+                                <option value="tugas" class="bg-slate-900 text-white">Surat Perintah Tugas (SPT)</option>
+                                <option value="keterangan" class="bg-slate-900 text-white">Surat Keterangan Aktif / Kerja</option>
+                                <option value="undangan" class="bg-slate-900 text-white">Surat Undangan Rapat / Dinas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Customizer Grid Accordion-like Quick Settings -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 text-xs border-t border-slate-800">
+                    <div>
+                        <label class="block text-slate-400 mb-1">Gaya Huruf</label>
+                        <select id="setting-font" onchange="updateCustomizer()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="font-serif-formal" class="bg-slate-900 text-white" selected>Times New Roman</option>
+                            <option value="font-sans-formal" class="bg-slate-900 text-white">Inter / Arial</option>
+                            <option value="font-mono-formal" class="bg-slate-900 text-white">Courier New</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Ukuran Font</label>
+                        <select id="setting-font-size" onchange="updateCustomizer()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="text-xs" class="bg-slate-900 text-white">Sangat Kecil</option>
+                            <option value="text-sm" class="bg-slate-900 text-white" selected>Default (Sedang)</option>
+                            <option value="text-base" class="bg-slate-900 text-white">Besar (16px)</option>
+                            <option value="text-lg" class="bg-slate-900 text-white">Sangat Besar</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Kop Surat</label>
+                        <select id="setting-kop" onchange="updateKopVisibility()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="true" class="bg-slate-900 text-white">Aktif (Kop Dinas)</option>
+                            <option value="false" class="bg-slate-900 text-white" selected>Tanpa Kop Surat</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 mb-1">Jarak Baris</label>
+                        <select id="setting-leading" onchange="updateCustomizer()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            <option value="leading-tight" class="bg-slate-900 text-white">Rapat</option>
+                            <option value="leading-normal" class="bg-slate-900 text-white" selected>Normal</option>
+                            <option value="leading-relaxed" class="bg-slate-900 text-white">Lebar</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scrollable Settings Sections -->
+            <div class="flex-1 overflow-y-auto p-5 space-y-6 no-scrollbar">
+
+                <!-- Section: KOP SURAT (Dinamis Aktif/Pasif) -->
+                <div id="section-kop-customizer" class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-4 transition-all duration-300 hidden">
+                    <div class="flex items-center space-x-2 text-blue-400 border-b border-slate-800 pb-2">
+                        <i data-lucide="building" class="w-4 h-4"></i>
+                        <h3 class="font-semibold text-xs uppercase tracking-wider">Kustomisasi Kop Surat Instansi</h3>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Nama Instansi / Perusahaan Induk</label>
+                            <input type="text" id="input-kop-parent" value="KEMENTERIAN DUMMY REPUBLIK INDONESIA" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Nama Unit / Cabang / Institusi Pelaksana</label>
+                            <input type="text" id="input-kop-unit" value="DIREKTORAT PENGEMBANGAN TEKNOLOGI INFORMASI" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Slogan / Keterangan</label>
+                                <input type="text" id="input-kop-slogan" value="Inovasi, Transparansi, dan Akurasi" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Website</label>
+                                <input type="text" id="input-kop-web" value="www.dit-it-dummy.go.id" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Alamat Lengkap Kantor & Kontak</label>
+                            <textarea id="input-kop-contact" rows="2" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">Jl. Jenderal Sudirman No. 99, Jakarta Pusat 10110 | Telp: (021) 555-0192 / Email: admin@dit-it-dummy.go.id</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: SENDER (PENGIRIM) & DRAFT DETAILS -->
+                <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center space-x-2 text-blue-400 border-b border-slate-800 pb-2">
+                        <i data-lucide="user-check" class="w-4 h-4"></i>
+                        <h3 class="font-semibold text-xs uppercase tracking-wider">Informasi Pengirim / Penandatangan</h3>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Nama Lengkap</label>
+                                <input type="text" id="input-sender-name" value="Hendra Maulidan, S.Kom." oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Jabatan Resmi</label>
+                                <input type="text" id="input-sender-title" value="Direktur Utama" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">NIP / NIDN / No. Identitas</label>
+                                <input type="text" id="input-sender-id" value="NIP. 199508152020011002" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Tempat & Tanggal Surat</label>
+                                <input type="text" id="input-letter-date" value="Jakarta, 20 Juni 2026" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Alamat Kontak Tambahan (Opsional)</label>
+                            <input type="text" id="input-sender-extra" value="Email: hendra.maulidan@example.com | Telp: +62 812-3456-7890" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: RECIPIENT (PENERIMA) -->
+                <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center space-x-2 text-blue-400 border-b border-slate-800 pb-2">
+                        <i data-lucide="mail" class="w-4 h-4"></i>
+                        <h3 class="font-semibold text-xs uppercase tracking-wider">Informasi Penerima Surat</h3>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Yth. Nama / Jabatan Penerima</label>
+                                <input type="text" id="input-recipient-name" value="Kepala Divisi Teknologi Informasi" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Nama Instansi / Perusahaan</label>
+                                <input type="text" id="input-recipient-company" value="PT Solusi Prima Nusantara" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Alamat Penerima</label>
+                            <textarea id="input-recipient-address" rows="2" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">Menara Prima Lestari Lt. 15, Jl. Rasuna Said Kav. 12
+Jakarta Selatan, DKI Jakarta 12920</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: DETAIL ADMINISTRASI SURAT -->
+                <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center space-x-2 text-blue-400 border-b border-slate-800 pb-2">
+                        <i data-lucide="tag" class="w-4 h-4"></i>
+                        <h3 class="font-semibold text-xs uppercase tracking-wider">Detail Surat (Nomor, Lampiran & Perihal)</h3>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Nomor Surat (Opsional)</label>
+                                <input type="text" id="input-letter-num" value="002/DIR-SPT/IT-DUMMY/VI/2026" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-slate-400 text-xs mb-1">Lampiran</label>
+                                <input type="text" id="input-letter-attach" value="1 Berkas" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Hal / Perihal Surat</label>
+                            <input type="text" id="input-letter-subject" value="Surat Perintah Tugas Integrasi Sistem Basis Data Digital" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: CONTENT & SALUTATION -->
+                <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center space-x-2 text-blue-400 border-b border-slate-800 pb-2">
+                        <i data-lucide="align-left" class="w-4 h-4"></i>
+                        <h3 class="font-semibold text-xs uppercase tracking-wider">Isi Surat / Narasi</h3>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Salam Pembuka</label>
+                            <input type="text" id="input-opening-greeting" value="Dengan hormat," oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Paragraf Pembuka / Pengantar</label>
+                            <textarea id="input-letter-intro" rows="3" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">Dengan ini, Direktur Utama menetapkan penugasan khusus kepada delegasi teknis berikut dalam rangka audit keamanan digital nasional:</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1 flex justify-between items-center">
+                                <span>Detail Subjek Utama / Daftar Poin</span>
+                                <span class="text-[10px] text-slate-500 text-right">Tulis format list atau poin penting di sini</span>
+                            </label>
+                            <textarea id="input-letter-body-points" rows="5" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none">Nama : Hendra Maulidan
+Jabatan : Lead IT Architect & Cybersecurity Specialist
+Keperluan : Melakukan pemeliharaan, uji penetrasi sistem eksternal, dan merumuskan arsitektur pertahanan siber baru.</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Paragraf Penutup / Harapan</label>
+                            <textarea id="input-letter-closing" rows="3" oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">Demikian surat perintah tugas ini diberikan untuk dapat dijalankan dengan penuh dedikasi dan rasa tanggung jawab yang tinggi.</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Salam Penutup</label>
+                            <input type="text" id="input-closing-greeting" value="Hormat kami," oninput="liveUpdate()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: OPTIONAL SECONDARY SIGNATORY (Tembusan) -->
+                <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-800 space-y-4">
+                    <div class="flex items-center space-x-2 text-blue-400 border-b border-slate-800 pb-2">
+                        <i data-lucide="layers" class="w-4 h-4"></i>
+                        <h3 class="font-semibold text-xs uppercase tracking-wider">Tembusan & Catatan Kaki (Opsional)</h3>
+                    </div>
+                    <div class="space-y-3 text-sm">
+                        <div>
+                            <label class="block text-slate-400 text-xs mb-1">Daftar Tembusan (Satu Baris per Poin)</label>
+                            <textarea id="input-letter-cc" rows="3" oninput="liveUpdate()" placeholder="Contoh:&#10;1. Rektor Universitas Indonesia Raya&#10;2. Arsip Biro Akademik" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-white text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none">1. Dewan Komisaris Utama
+2. Arsip Biro SDM & Kepegawaian</textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Right Panel: Live A4 Document Preview -->
+        <section id="panel-preview" class="w-full lg:w-[55%] bg-slate-600 flex flex-col h-full overflow-y-auto p-4 md:p-8 relative no-scrollbar hidden lg:flex">
+            <!-- Floating Zoom/Preview controls -->
+            <div class="no-print absolute top-4 right-4 z-20 flex items-center space-x-2 bg-slate-800/95 backdrop-blur-md px-3 py-2 rounded-lg border border-slate-700 text-white shadow-md">
+                <button onclick="zoomOut()" title="Perkecil" class="p-1 hover:bg-slate-700 rounded transition-all"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+                <span id="zoom-text" class="text-xs font-semibold select-none">100%</span>
+                <button onclick="zoomIn()" title="Perbesar" class="p-1 hover:bg-slate-700 rounded transition-all"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+                <div class="h-4 w-px bg-slate-600 mx-1"></div>
+                <button onclick="resetZoom()" title="Reset Zoom" class="p-1 hover:bg-slate-700 rounded transition-all"><i data-lucide="maximize-2" class="w-4 h-4"></i></button>
+            </div>
+
+            <!-- Paper Containment wrapper (centered with scale viewport control) -->
+            <div id="paper-container" class="w-full flex-1 flex justify-center items-start py-4 overflow-x-hidden">
+                <!-- A4 Simulated Box -->
+                <div id="letter-paper" class="print-area paper-preview font-serif-formal text-sm text-black leading-normal p-16 origin-top">
+                    
+                    <!-- KOP SURAT CONTAINER (Dinamis Aktif/Pasif) -->
+                    <div id="preview-kop-section" class="hidden">
+                        <div class="flex items-start justify-between border-b border-black pb-2">
+                            <!-- Logo Placeholder -->
+                            <div class="w-16 h-16 flex-shrink-0 mr-4 self-center">
+                                <svg class="w-full h-full text-black" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="4"/>
+                                    <path d="M50 15V85M15 50H85" stroke="currentColor" stroke-width="2"/>
+                                    <polygon points="50,25 60,45 80,50 60,55 50,75 40,55 20,50 40,45" fill="currentColor"/>
+                                </svg>
+                            </div>
+                            
+                            <!-- Kop Text -->
+                            <div class="flex-1 text-center">
+                                <h2 id="view-kop-parent" class="text-xs font-bold tracking-tight leading-tight uppercase">KEMENTERIAN DUMMY REPUBLIK INDONESIA</h2>
+                                <h1 id="view-kop-unit" class="text-sm font-extrabold tracking-normal leading-normal uppercase">DIREKTORAT PENGEMBANGAN TEKNOLOGI INFORMASI</h1>
+                                <p id="view-kop-slogan" class="text-[11px] italic font-medium">Inovasi, Transparansi, dan Akurasi</p>
+                                <p id="view-kop-contact" class="text-[10px] mt-1 font-normal">Jl. Jenderal Sudirman No. 99, Jakarta Pusat 10110 | Telp: (021) 555-0192 / Email: admin@dit-it-dummy.go.id</p>
+                                <p id="view-kop-web" class="text-[10px] text-blue-800 font-semibold underline">www.dit-it-dummy.go.id</p>
+                            </div>
+                        </div>
+                        <div class="kop-line"></div>
+                    </div>
+
+                    <!-- SPACE UNTUK NON-KOP SURAT (Dinamis jika kop surat nonaktif) -->
+                    <div id="preview-nonkop-spacer" class="h-6"></div>
+
+                    <!-- TANGGAL SURAT (Rata Kanan) -->
+                    <div class="flex justify-end mb-6">
+                        <span id="view-letter-date">Jakarta, 20 Juni 2026</span>
+                    </div>
+
+                    <!-- METADATA SURAT (Nomor, Lampiran, Perihal) -->
+                    <div class="grid grid-cols-[100px_10px_1fr] gap-x-1 gap-y-1 mb-6">
+                        <div class="font-semibold">Nomor</div>
+                        <div>:</div>
+                        <div id="view-letter-num">002/DIR-SPT/IT-DUMMY/VI/2026</div>
+
+                        <div class="font-semibold">Lampiran</div>
+                        <div>:</div>
+                        <div id="view-letter-attach">1 Berkas</div>
+
+                        <div class="font-semibold">Perihal</div>
+                        <div>:</div>
+                        <div id="view-letter-subject" class="font-bold underline">Surat Perintah Tugas Integrasi Sistem Basis Data Digital</div>
+                    </div>
+
+                    <!-- PENERIMA SURAT (Yth. ) -->
+                    <div class="mb-6">
+                        <p class="font-normal">Kepada Yang Terhormat,</p>
+                        <p id="view-recipient-name" class="font-bold">Kepala Divisi Teknologi Informasi</p>
+                        <p id="view-recipient-company" class="font-bold">PT Solusi Prima Nusantara</p>
+                        <div id="view-recipient-address" class="whitespace-pre-line mt-1 italic text-slate-700 text-xs">Menara Prima Lestari Lt. 15, Jl. Rasuna Said Kav. 12
+Jakarta Selatan, DKI Jakarta 12920</div>
+                    </div>
+
+                    <!-- SALAM PEMBUKA -->
+                    <div class="mb-4">
+                        <p id="view-opening-greeting" class="font-normal">Dengan hormat,</p>
+                    </div>
+
+                    <!-- PARAGRAF PEMBUKA -->
+                    <div class="mb-4 text-justify">
+                        <p id="view-letter-intro" class="whitespace-pre-line">Dengan ini, Direktur Utama menetapkan penugasan khusus kepada delegasi teknis berikut dalam rangka audit keamanan digital nasional:</p>
+                    </div>
+
+                    <!-- DETAIL POIN UTAMA (TABULAR / BULLET POINTS) -->
+                    <div class="mb-6 pl-6 text-justify">
+                        <div id="view-letter-body-points" class="whitespace-pre-line font-mono text-xs bg-slate-50 p-3 rounded-lg border border-dashed border-slate-200">Nama : Hendra Maulidan
+Jabatan : Lead IT Architect & Cybersecurity Specialist
+Keperluan : Melakukan pemeliharaan, uji penetrasi sistem eksternal, dan merumuskan arsitektur pertahanan siber baru.</div>
+                    </div>
+
+                    <!-- PARAGRAF PENUTUP -->
+                    <div class="mb-8 text-justify">
+                        <p id="view-letter-closing" class="whitespace-pre-line">Demikian surat perintah tugas ini diberikan untuk dapat dijalankan dengan penuh dedikasi dan rasa tanggung jawab yang tinggi.</p>
+                    </div>
+
+                    <!-- SALAM PENUTUP & TANDA TANGAN (Double layout atau single kanan) -->
+                    <div class="flex justify-between items-start mt-8">
+                        <div></div> <!-- Spacer Kiri -->
+                        
+                        <!-- Block Tanda Tangan Kanan (Pengirim) -->
+                        <div class="text-center min-w-[220px]">
+                            <p id="view-closing-greeting" class="mb-1">Hormat kami,</p>
+                            <p id="view-sender-title" class="font-bold text-xs">Direktur Utama</p>
+                            
+                            <!-- TTD Digital Visual Space -->
+                            <div class="h-16 flex items-center justify-center my-2 italic text-slate-400 border border-dashed border-slate-200 rounded text-[10px] select-none pointer-events-none bg-slate-50">
+                                [ Tanda Tangan Basah / Stempel ]
+                            </div>
+                            
+                            <p id="view-sender-name" class="font-bold underline">Hendra Maulidan, S.Kom.</p>
+                            <p id="view-sender-id" class="text-xs">NIP. 199508152020011002</p>
+                            <p id="view-sender-extra" class="text-[10px] text-slate-500 mt-1 whitespace-pre-line">Email: hendra.maulidan@example.com | Telp: +62 812-3456-7890</p>
+                        </div>
+                    </div>
+
+                    <!-- TEMBUSAN (Optional block di kaki surat) -->
+                    <div id="preview-cc-section" class="mt-12 pt-4 border-t border-slate-200">
+                        <p class="font-semibold text-xs uppercase text-slate-500 mb-1">Tembusan:</p>
+                        <ol id="view-letter-cc" class="list-decimal list-inside text-xs text-slate-600 space-y-1">
+                            <li>Dewan Komisaris Utama</li>
+                            <li>Arsip Biro SDM & Kepegawaian</li>
+                        </ol>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer / Status Bar (No Print) -->
+    <footer class="no-print bg-white border-t border-slate-200 px-6 py-3 text-xs text-slate-500 flex flex-col md:flex-row items-center justify-between">
+        <div class="flex items-center space-x-2">
+            <span class="flex h-2.5 w-2.5 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+            </span>
+            <span>Semua draf disimpan otomatis di dalam cache browser Anda.</span>
+        </div>
+        <div class="mt-2 md:mt-0">
+            <span>&copy; 2026 Formal Letter Generator. Dibuat dengan presisi tinggi untuk standarisasi surat dinas.</span>
+        </div>
+    </footer>
+
+    <!-- JS Logic Core -->
+    <script>
+        // Zoom controller state
+        let currentZoom = 1;
+        let autoScale = 1;      // Base scale calculated dynamically
+        let zoomModifier = 1.0; // User manual zoom scale multiplier
+        
+        // Templates Dataset
+        const letterTemplates = {
+            lamaran: {
+                title: "Surat Lamaran Kerja",
+                isKopActive: "false",
+                senderName: "Hendra Maulidan, S.Kom.",
+                senderTitle: "Pelamar Kerja (IT Architect)",
+                senderId: "No. KTP: 317300412950002",
+                senderExtra: "Kontak: +62 812-3456-7890 | hendra.maulidan@example.com",
+                letterDate: "Jakarta, 20 Juni 2026",
+                recipientName: "Bapak/Ibu Kepala HRD",
+                recipientCompany: "PT Solusi Prima Nusantara",
+                recipientAddress: "Menara Prima Lestari Lt. 15, Jl. Rasuna Said Kav. 12\nJakarta Selatan, DKI Jakarta 12920",
+                letterNum: "-",
+                letterAttach: "5 Lembar (CV, Portofolio, Ijazah, Transkrip, KTP)",
+                letterSubject: "Lamaran Pekerjaan - Posisi Lead IT Architect & Cybersecurity Specialist",
+                openingGreeting: "Dengan hormat,",
+                letterIntro: "Berdasarkan informasi lowongan pekerjaan yang saya peroleh, saya bermaksud mengajukan diri guna bergabung dengan PT Solusi Prima Nusantara sebagai Lead IT Architect. Saya memiliki dedikasi tinggi serta keahlian arsitektur sistem informasi berskala besar.",
+                letterBodyPoints: "Berikut kualifikasi singkat saya:\n\nNama : Hendra Maulidan, S.Kom.\nPendidikan : S1 Informatika\nKeahlian : Go-Lang, AWS Cloud, PostgreSQL & System Security Design",
+                letterClosing: "Besar harapan saya untuk mendapatkan kesempatan wawancara langsung guna memaparkan kontribusi nyata yang dapat saya berikan bagi pertumbuhan sistem IT korporat PT Solusi Prima Nusantara.",
+                closingGreeting: "Hormat saya,",
+                ccPoints: ""
+            },
+            tugas: {
+                title: "Surat Perintah Tugas",
+                isKopActive: "true",
+                senderName: "Hendra Maulidan, S.Kom.",
+                senderTitle: "Direktur Utama",
+                senderId: "NIP. 199508152020011002",
+                senderExtra: "Email: hendra.maulidan@example.com | Telp: +62 812-3456-7890",
+                letterDate: "Jakarta, 20 Juni 2026",
+                recipientName: "Kepala Divisi Teknologi Informasi",
+                recipientCompany: "PT Solusi Prima Nusantara",
+                recipientAddress: "Menara Prima Lestari Lt. 15, Jl. Rasuna Said Kav. 12\nJakarta Selatan, DKI Jakarta 12920",
+                letterNum: "002/DIR-SPT/IT-DUMMY/VI/2026",
+                letterAttach: "1 Berkas",
+                letterSubject: "Surat Perintah Tugas Integrasi Sistem Basis Data Digital",
+                openingGreeting: "Dengan hormat,",
+                letterIntro: "Dengan ini, Direktur Utama menetapkan penugasan khusus kepada delegasi teknis berikut dalam rangka audit keamanan digital nasional:",
+                letterBodyPoints: "Nama : Hendra Maulidan\nJabatan : Lead IT Architect & Cybersecurity Specialist\nKeperluan : Melakukan pemeliharaan, uji penetrasi sistem eksternal, dan merumuskan arsitektur pertahanan siber baru.",
+                letterClosing: "Demikian surat perintah tugas ini diberikan untuk dapat dijalankan dengan penuh dedikasi dan rasa tanggung jawab yang tinggi.",
+                closingGreeting: "Hormat kami,",
+                ccPoints: "1. Dewan Komisaris Utama\n2. Arsip Biro SDM & Kepegawaian"
+            },
+            keterangan: {
+                title: "Surat Keterangan Aktif",
+                isKopActive: "true",
+                senderName: "Hendra Maulidan, S.Kom.",
+                senderTitle: "Kepala Hubungan Eksternal & Pengembangan",
+                senderId: "NIP. 199508152020011002",
+                senderExtra: "Kontak: hendra.maulidan@example.com",
+                letterDate: "Jakarta, 20 Juni 2026",
+                recipientName: "Mahasiswa / Karyawan Terkait",
+                recipientCompany: "Biro Administrasi Internal",
+                recipientAddress: "Gedung Pusat Informasi Lantai Dasar\nDi Tempat",
+                letterNum: "100/SK-PENG/IT-DUMMY/VI/2026",
+                letterAttach: "-",
+                letterSubject: "Surat Keterangan Aktif Bertugas & Berprestasi",
+                openingGreeting: "Kepada yang berkepentingan,",
+                letterIntro: "Yang bertandatangan di bawah ini menerangkan secara sadar dan sah bahwa personil yang namanya tercantum berikut ini merupakan staf aktif penuh waktu kami:",
+                letterBodyPoints: "Nama Lengkap : Hendra Maulidan, S.Kom.\nJabatan Utama : Senior Technical Consultant\nDepartemen : Layanan Infrastruktur Awan (Cloud Services)\nStatus Kontrak : Pegawai Tetap Utama",
+                letterClosing: "Adalah benar yang bersangkutan telah menunjukkan integritas dan dedikasi luar biasa selama mengabdi di instansi kami. Surat keterangan ini diterbitkan guna melengkapi dokumen administrasi kualifikasi profesional.",
+                closingGreeting: "Mengetahui,",
+                ccPoints: "1. Arsip Departemen SDM\n2. Arsip Komite Eksekutif"
+            },
+            undangan: {
+                title: "Surat Undangan Dinas",
+                isKopActive: "true",
+                senderName: "Hendra Maulidan, S.Kom.",
+                senderTitle: "Ketua Panitia Pelaksana Evaluasi",
+                senderId: "NIP. 199508152020011002",
+                senderExtra: "Kontak: +62 812-3456-7890",
+                letterDate: "Jakarta, 20 Juni 2026",
+                recipientName: "Seluruh Jajaran Manager & Leader",
+                recipientCompany: "PT Solusi Prima Nusantara",
+                recipientAddress: "Menara Prima Lestari Lt. 15, Jl. Rasuna Said Kav. 12\nJakarta Selatan, DKI Jakarta 12920",
+                letterNum: "032/UND/IT-DUMMY/VI/2026",
+                letterAttach: "Rincian Agenda Rapat",
+                letterSubject: "Undangan Rapat Pleno Koordinasi Sistem Integrasi 2026",
+                openingGreeting: "Salam sejahtera,",
+                letterIntro: "Dalam rangka memperlancar migrasi infrastruktur digital ke teknologi berbasis awan, kami mengundang Bapak/Ibu sekalian untuk menghadiri agenda evaluasi komprehensif:",
+                letterBodyPoints: "Hari / Tanggal : Jumat, 26 Juni 2026\nWaktu : Pukul 09.30 WIB s.d. Selesai\nTempat : Ruang Rapat Besar Lantai 15\nAgenda Utama : Pembahasan migrasi sistem dan audit ketahanan siber terpadu.",
+                letterClosing: "Mengingat pentingnya koordinasi strategis ini bagi operasional jangka panjang, kami sangat mengharapkan kehadiran Bapak/Ibu tepat pada waktu yang telah ditentukan. Terima kasih.",
+                closingGreeting: "Hormat kami,",
+                ccPoints: "1. Jajaran Direksi Utama"
+            }
+        };
+
+        // Initialize application
+        window.addEventListener('DOMContentLoaded', () => {
+            // Load lucide icons
+            lucide.createIcons();
+            
+            // Check if there is cache in localStorage, otherwise load Default 'tugas' template
+            const cachedTemplate = localStorage.getItem('formal_letter_generator_draft');
+            if (cachedTemplate) {
+                try {
+                    const parsed = JSON.parse(cachedTemplate);
+                    loadFormFromData(parsed);
+                } catch(e) {
+                    loadTemplate('tugas');
+                }
+            } else {
+                loadTemplate('tugas');
+            }
+
+            // Auto-save form inputs in real-time
+            document.querySelectorAll('input, textarea, select').forEach(element => {
+                element.addEventListener('input', () => {
+                    saveDraftToCache();
+                });
+            });
+
+            // Handle auto-fit of the A4 preview dynamically on resize and startup
+            window.addEventListener('resize', autoFitPaper);
+            setTimeout(autoFitPaper, 100);
+        });
+
+        // Toggle mobile workspaces (Form vs Preview)
+        function switchMobileTab(tab) {
+            const formPanel = document.getElementById('panel-form');
+            const previewPanel = document.getElementById('panel-preview');
+            const btnForm = document.getElementById('btn-tab-form');
+            const btnPreview = document.getElementById('btn-tab-preview');
+
+            if (tab === 'form') {
+                formPanel.classList.remove('hidden');
+                previewPanel.classList.add('hidden');
+                previewPanel.classList.remove('flex');
+                
+                btnForm.classList.add('bg-blue-600', 'text-white');
+                btnForm.classList.remove('text-slate-400');
+                btnPreview.classList.remove('bg-blue-600', 'text-white');
+                btnPreview.classList.add('text-slate-400');
+            } else {
+                formPanel.classList.add('hidden');
+                previewPanel.classList.remove('hidden');
+                previewPanel.classList.add('flex');
+                
+                btnPreview.classList.add('bg-blue-600', 'text-white');
+                btnPreview.classList.remove('text-slate-400');
+                btnForm.classList.remove('bg-blue-600', 'text-white');
+                btnForm.classList.add('text-slate-400');
+                
+                // Trigger scaling when rendering visual panel
+                setTimeout(autoFitPaper, 50);
+            }
+        }
+
+        // Auto Scaling Engine for A4 Paper Layout
+        function autoFitPaper() {
+            const container = document.getElementById('paper-container');
+            const paper = document.getElementById('letter-paper');
+            if (!container || !paper) return;
+
+            const containerWidth = container.clientWidth;
+            const paperBaseWidth = 794; // Base 96 DPI pixel width of A4
+
+            // Base auto scale calculation based on container minus paddings
+            const targetWidth = containerWidth - 32; // 16px safe margins
+            autoScale = targetWidth / paperBaseWidth;
+
+            // Constrain scaling limits
+            if (autoScale > 1.05) autoScale = 1.05;
+            if (autoScale < 0.25) autoScale = 0.25;
+
+            applyScale();
+        }
+
+        // Apply scale & handle container height adjustment so layout doesn't collapse
+        function applyScale() {
+            const paper = document.getElementById('letter-paper');
+            const container = document.getElementById('paper-container');
+            if (!paper || !container) return;
+
+            // Combined scale: auto responsive scale * user manual zoom multiplier
+            currentZoom = autoScale * zoomModifier;
+            paper.style.transform = `scale(${currentZoom})`;
+            
+            // Adjust visual label
+            document.getElementById('zoom-text').innerText = `${Math.round(currentZoom * 100)}%`;
+
+            // Adjust parent height dynamically to avoid bottom empty blank space due to scaling
+            const paperBaseHeight = paper.offsetHeight || 1123;
+            const scaledHeight = paperBaseHeight * currentZoom;
+            container.style.minHeight = `${scaledHeight + 40}px`;
+        }
+
+        // Load targeted template structure
+        function loadTemplate(key) {
+            const data = letterTemplates[key];
+            if (!data) return;
+
+            // Load values to forms
+            document.getElementById('setting-kop').value = data.isKopActive;
+            document.getElementById('input-sender-name').value = data.senderName;
+            document.getElementById('input-sender-title').value = data.senderTitle;
+            document.getElementById('input-sender-id').value = data.senderId;
+            document.getElementById('input-sender-extra').value = data.senderExtra;
+            document.getElementById('input-letter-date').value = data.letterDate;
+            document.getElementById('input-recipient-name').value = data.recipientName;
+            document.getElementById('input-recipient-company').value = data.recipientCompany;
+            document.getElementById('input-recipient-address').value = data.recipientAddress;
+            document.getElementById('input-letter-num').value = data.letterNum;
+            document.getElementById('input-letter-attach').value = data.letterAttach;
+            document.getElementById('input-letter-subject').value = data.letterSubject;
+            document.getElementById('input-opening-greeting').value = data.openingGreeting;
+            document.getElementById('input-letter-intro').value = data.letterIntro;
+            document.getElementById('input-letter-body-points').value = data.letterBodyPoints;
+            document.getElementById('input-letter-closing').value = data.letterClosing;
+            document.getElementById('input-closing-greeting').value = data.closingGreeting;
+            document.getElementById('input-letter-cc').value = data.ccPoints;
+
+            updateKopVisibility();
+            liveUpdate();
+            saveDraftToCache();
+        }
+
+        // Live Update Letter Preview from Forms
+        function liveUpdate() {
+            // Fetch inputs
+            const senderName = document.getElementById('input-sender-name').value;
+            const senderTitle = document.getElementById('input-sender-title').value;
+            const senderId = document.getElementById('input-sender-id').value;
+            const senderExtra = document.getElementById('input-sender-extra').value;
+            const letterDate = document.getElementById('input-letter-date').value;
+            const recipientName = document.getElementById('input-recipient-name').value;
+            const recipientCompany = document.getElementById('input-recipient-company').value;
+            const recipientAddress = document.getElementById('input-recipient-address').value;
+            const letterNum = document.getElementById('input-letter-num').value;
+            const letterAttach = document.getElementById('input-letter-attach').value;
+            const letterSubject = document.getElementById('input-letter-subject').value;
+            const openingGreeting = document.getElementById('input-opening-greeting').value;
+            const letterIntro = document.getElementById('input-letter-intro').value;
+            const letterBodyPoints = document.getElementById('input-letter-body-points').value;
+            const letterClosing = document.getElementById('input-letter-closing').value;
+            const closingGreeting = document.getElementById('input-closing-greeting').value;
+            const ccPoints = document.getElementById('input-letter-cc').value;
+
+            // Fetch Kop inputs
+            const kopParent = document.getElementById('input-kop-parent').value;
+            const kopUnit = document.getElementById('input-kop-unit').value;
+            const kopSlogan = document.getElementById('input-kop-slogan').value;
+            const kopContact = document.getElementById('input-kop-contact').value;
+            const kopWeb = document.getElementById('input-kop-web').value;
+
+            // Update DOM inside preview A4
+            document.getElementById('view-sender-name').innerText = senderName || '[Nama Pengirim]';
+            document.getElementById('view-sender-title').innerText = senderTitle || '[Jabatan Pengirim]';
+            document.getElementById('view-sender-id').innerText = senderId || '';
+            document.getElementById('view-sender-extra').innerHTML = senderExtra.replace(/\n/g, '<br>') || '';
+            document.getElementById('view-letter-date').innerText = letterDate || '[Tempat, Tanggal]';
+            document.getElementById('view-recipient-name').innerText = recipientName || '';
+            document.getElementById('view-recipient-company').innerText = recipientCompany || '';
+            document.getElementById('view-recipient-address').innerText = recipientAddress || '';
+            document.getElementById('view-letter-num').innerText = letterNum || '-';
+            document.getElementById('view-letter-attach').innerText = letterAttach || '-';
+            document.getElementById('view-letter-subject').innerText = letterSubject || '[Hal/Perihal Surat]';
+            document.getElementById('view-opening-greeting').innerText = openingGreeting || 'Dengan hormat,';
+            document.getElementById('view-letter-intro').innerText = letterIntro || '';
+            document.getElementById('view-letter-body-points').innerText = letterBodyPoints || '';
+            document.getElementById('view-letter-closing').innerText = letterClosing || '';
+            document.getElementById('view-closing-greeting').innerText = closingGreeting || 'Hormat kami,';
+
+            // Check if bullet points is empty to hide the styling box in preview
+            const pointsBox = document.getElementById('view-letter-body-points');
+            if (!letterBodyPoints.trim()) {
+                pointsBox.classList.add('hidden');
+            } else {
+                pointsBox.classList.remove('hidden');
+            }
+
+            // Update Kop DOM
+            document.getElementById('view-kop-parent').innerText = kopParent;
+            document.getElementById('view-kop-unit').innerText = kopUnit;
+            document.getElementById('view-kop-slogan').innerText = kopSlogan;
+            document.getElementById('view-kop-contact').innerText = kopContact;
+            document.getElementById('view-kop-web').innerText = kopWeb;
+
+            // CC / Tembusan Dynamic List Builder
+            const ccSection = document.getElementById('preview-cc-section');
+            const ccList = document.getElementById('view-letter-cc');
+            if (ccPoints.trim()) {
+                ccSection.classList.remove('hidden');
+                ccList.innerHTML = '';
+                ccPoints.split('\n').forEach(line => {
+                    if (line.trim()) {
+                        const cleanLine = line.replace(/^\d+[\.\s\-]+/g, '');
+                        const li = document.createElement('li');
+                        li.innerText = cleanLine;
+                        ccList.appendChild(li);
+                    }
+                });
+            } else {
+                ccSection.classList.add('hidden');
+            }
+
+            // Trigger dynamic scaling adaptation as the document height updates
+            setTimeout(applyScale, 50);
+        }
+
+        // Toggle Kop Surat Panel Visibility
+        function updateKopVisibility() {
+            const isKop = document.getElementById('setting-kop').value === "true";
+            const kopSection = document.getElementById('preview-kop-section');
+            const nonKopSpacer = document.getElementById('preview-nonkop-spacer');
+            const customizerSection = document.getElementById('section-kop-customizer');
+
+            if (isKop) {
+                kopSection.classList.remove('hidden');
+                nonKopSpacer.classList.add('hidden');
+                customizerSection.classList.remove('hidden');
+            } else {
+                kopSection.classList.add('hidden');
+                nonKopSpacer.classList.remove('hidden');
+                customizerSection.classList.add('hidden');
+            }
+            saveDraftToCache();
+            setTimeout(autoFitPaper, 50);
+        }
+
+        // Apply visual settings (Font Type, Size, Spacing)
+        function updateCustomizer() {
+            const paper = document.getElementById('letter-paper');
+            const selectedFont = document.getElementById('setting-font').value;
+            const selectedSize = document.getElementById('setting-font-size').value;
+            const selectedLeading = document.getElementById('setting-leading').value;
+
+            // Reset fonts class
+            paper.classList.remove('font-serif-formal', 'font-sans-formal', 'font-mono-formal');
+            paper.classList.add(selectedFont);
+
+            // Reset size
+            paper.classList.remove('text-xs', 'text-sm', 'text-base', 'text-lg');
+            paper.classList.add(selectedSize);
+
+            // Reset leading
+            paper.classList.remove('leading-tight', 'leading-normal', 'leading-relaxed');
+            paper.classList.add(selectedLeading);
+
+            saveDraftToCache();
+            setTimeout(applyScale, 50);
+        }
+
+        // Zoom Modifier Controls
+        function zoomIn() {
+            if (zoomModifier < 1.8) {
+                zoomModifier += 0.1;
+                applyScale();
+            }
+        }
+
+        // Zoom Out
+        function zoomOut() {
+            if (zoomModifier > 0.4) {
+                zoomModifier -= 0.1;
+                applyScale();
+            }
+        }
+
+        // Reset Manual zoom modifier back to normal auto-scale level
+        function resetZoom() {
+            zoomModifier = 1.0;
+            autoFitPaper();
+        }
+
+        // Save Current State to Local Storage
+        function saveDraftToCache() {
+            const draft = {
+                // Settings
+                fontStyle: document.getElementById('setting-font').value,
+                fontSize: document.getElementById('setting-font-size').value,
+                isKopActive: document.getElementById('setting-kop').value,
+                leading: document.getElementById('setting-leading').value,
+                template: document.getElementById('letter-template-select').value,
+
+                // Forms
+                kopParent: document.getElementById('input-kop-parent').value,
+                kopUnit: document.getElementById('input-kop-unit').value,
+                kopSlogan: document.getElementById('input-kop-slogan').value,
+                kopContact: document.getElementById('input-kop-contact').value,
+                kopWeb: document.getElementById('input-kop-web').value,
+
+                senderName: document.getElementById('input-sender-name').value,
+                senderTitle: document.getElementById('input-sender-title').value,
+                senderId: document.getElementById('input-sender-id').value,
+                senderExtra: document.getElementById('input-sender-extra').value,
+                letterDate: document.getElementById('input-letter-date').value,
+
+                recipientName: document.getElementById('input-recipient-name').value,
+                recipientCompany: document.getElementById('input-recipient-company').value,
+                recipientAddress: document.getElementById('input-recipient-address').value,
+
+                letterNum: document.getElementById('input-letter-num').value,
+                letterAttach: document.getElementById('input-letter-attach').value,
+                letterSubject: document.getElementById('input-letter-subject').value,
+
+                openingGreeting: document.getElementById('input-opening-greeting').value,
+                letterIntro: document.getElementById('input-letter-intro').value,
+                letterBodyPoints: document.getElementById('input-letter-body-points').value,
+                letterClosing: document.getElementById('input-letter-closing').value,
+                closingGreeting: document.getElementById('input-closing-greeting').value,
+                ccPoints: document.getElementById('input-letter-cc').value,
+            };
+
+            localStorage.setItem('formal_letter_generator_draft', JSON.stringify(draft));
+        }
+
+        // Load Cached Data to Form
+        function loadFormFromData(data) {
+            if (!data) return;
+
+            document.getElementById('setting-font').value = data.fontStyle || 'font-serif-formal';
+            document.getElementById('setting-font-size').value = data.fontSize || 'text-sm';
+            document.getElementById('setting-kop').value = data.isKopActive || 'false';
+            document.getElementById('setting-leading').value = data.leading || 'leading-normal';
+            document.getElementById('letter-template-select').value = data.template || 'tugas';
+
+            document.getElementById('input-kop-parent').value = data.kopParent || '';
+            document.getElementById('input-kop-unit').value = data.kopUnit || '';
+            document.getElementById('input-kop-slogan').value = data.kopSlogan || '';
+            document.getElementById('input-kop-contact').value = data.kopContact || '';
+            document.getElementById('input-kop-web').value = data.kopWeb || '';
+
+            document.getElementById('input-sender-name').value = data.senderName || '';
+            document.getElementById('input-sender-title').value = data.senderTitle || '';
+            document.getElementById('input-sender-id').value = data.senderId || '';
+            document.getElementById('input-sender-extra').value = data.senderExtra || '';
+            document.getElementById('input-letter-date').value = data.letterDate || '';
+
+            document.getElementById('input-recipient-name').value = data.recipientName || '';
+            document.getElementById('input-recipient-company').value = data.recipientCompany || '';
+            document.getElementById('input-recipient-address').value = data.recipientAddress || '';
+
+            document.getElementById('input-letter-num').value = data.letterNum || '';
+            document.getElementById('input-letter-attach').value = data.letterAttach || '';
+            document.getElementById('input-letter-subject').value = data.letterSubject || '';
+
+            document.getElementById('input-opening-greeting').value = data.openingGreeting || '';
+            document.getElementById('input-letter-intro').value = data.letterIntro || '';
+            document.getElementById('input-letter-body-points').value = data.letterBodyPoints || '';
+            document.getElementById('input-letter-closing').value = data.letterClosing || '';
+            document.getElementById('input-closing-greeting').value = data.closingGreeting || '';
+            document.getElementById('input-letter-cc').value = data.ccPoints || '';
+
+            updateKopVisibility();
+            updateCustomizer();
+            liveUpdate();
+        }
+
+        // Reset All Form Fields
+        function resetFormToDefault() {
+            if (confirm('Apakah Anda yakin ingin mengatur ulang draf surat ini ke setelan asal? Seluruh perubahan saat ini akan dihapus.')) {
+                localStorage.removeItem('formal_letter_generator_draft');
+                loadTemplate('tugas');
+                document.getElementById('letter-template-select').value = 'tugas';
+            }
+        }
+
+        // Export Letter to Microsoft Word Format (Highly Compatible .doc format)
+        function exportToWord() {
+            try {
+                // Fetch form values & layout configurations
+                const fontStyle = document.getElementById('setting-font').value;
+                const fontSizeStyle = document.getElementById('setting-font-size').value;
+                const leadingStyle = document.getElementById('setting-leading').value;
+                const isKop = document.getElementById('setting-kop').value === "true";
+
+                // Mapping fonts to standard web & Word compatible equivalents
+                let wordFont = "Times New Roman";
+                if (fontStyle === "font-sans-formal") wordFont = "Arial";
+                if (fontStyle === "font-mono-formal") wordFont = "Courier New";
+
+                let wordFontSize = "11pt";
+                if (fontSizeStyle === "text-xs") wordFontSize = "9.5pt";
+                if (fontSizeStyle === "text-sm") wordFontSize = "11pt";
+                if (fontSizeStyle === "text-base") wordFontSize = "12pt";
+                if (fontSizeStyle === "text-lg") wordFontSize = "14pt";
+
+                let wordLineHeight = "1.15";
+                if (leadingStyle === "leading-tight") wordLineHeight = "1.0";
+                if (leadingStyle === "leading-normal") wordLineHeight = "1.15";
+                if (leadingStyle === "leading-relaxed") wordLineHeight = "1.4";
+
+                // Letter content extraction
+                const senderName = document.getElementById('input-sender-name').value;
+                const senderTitle = document.getElementById('input-sender-title').value;
+                const senderId = document.getElementById('input-sender-id').value;
+                const senderExtra = document.getElementById('input-sender-extra').value;
+                const letterDate = document.getElementById('input-letter-date').value;
+                const recipientName = document.getElementById('input-recipient-name').value;
+                const recipientCompany = document.getElementById('input-recipient-company').value;
+                const recipientAddress = document.getElementById('input-recipient-address').value;
+                const letterNum = document.getElementById('input-letter-num').value;
+                const letterAttach = document.getElementById('input-letter-attach').value;
+                const letterSubject = document.getElementById('input-letter-subject').value;
+                const openingGreeting = document.getElementById('input-opening-greeting').value;
+                const letterIntro = document.getElementById('input-letter-intro').value;
+                const letterBodyPoints = document.getElementById('input-letter-body-points').value;
+                const letterClosing = document.getElementById('input-letter-closing').value;
+                const closingGreeting = document.getElementById('input-closing-greeting').value;
+                const ccPoints = document.getElementById('input-letter-cc').value;
+
+                const kopParent = document.getElementById('input-kop-parent').value;
+                const kopUnit = document.getElementById('input-kop-unit').value;
+                const kopSlogan = document.getElementById('input-kop-slogan').value;
+                const kopContact = document.getElementById('input-kop-contact').value;
+                const kopWeb = document.getElementById('input-kop-web').value;
+
+                // Build clean XML/HTML structured markup targeting Word Document Layouts
+                let docContent = `
+                <html xmlns:o="urn:schemas-microsoft-com:office:office" 
+                      xmlns:w="urn:schemas-microsoft-com:office:word" 
+                      xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="utf-8">
+                    <title>${letterSubject || 'Surat Formal'}</title>
+                    <!--[if gte mso 9]>
+                    <xml>
+                        <w:WordDocument>
+                            <w:View>Print</w:View>
+                            <w:Zoom>100</w:Zoom>
+                            <w:DoNotOptimizeForBrowser/>
+                        </w:WordDocument>
+                    </xml>
+                    <![endif]-->
+                    <style>
+                        @page {
+                            size: 21cm 29.7cm; /* A4 */
+                            margin: 2.5cm 2cm 2.5cm 2.5cm; /* Standard Indonesian official margins */
+                        }
+                        body {
+                            font-family: "${wordFont}", "Times New Roman", serif;
+                            font-size: ${wordFontSize};
+                            line-height: ${wordLineHeight};
+                            color: #000000;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        p {
+                            margin: 0 0 8pt 0;
+                            text-align: justify;
+                        }
+                        .kop-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 6pt;
+                        }
+                        .kop-line {
+                            border-top: 3px solid #000000;
+                            border-bottom: 1px solid #000000;
+                            height: 4px;
+                            margin-top: 4pt;
+                            margin-bottom: 18pt;
+                        }
+                        .meta-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 18pt;
+                        }
+                        .meta-label {
+                            width: 100pt;
+                            font-weight: bold;
+                            vertical-align: top;
+                        }
+                        .meta-colon {
+                            width: 15pt;
+                            vertical-align: top;
+                            text-align: center;
+                        }
+                        .meta-value {
+                            vertical-align: top;
+                        }
+                        .recipient-box {
+                            margin-bottom: 18pt;
+                        }
+                        .points-container {
+                            font-family: "Courier New", monospace;
+                            font-size: 10pt;
+                            border: 1px dashed #cccccc;
+                            background-color: #fcfcfc;
+                            padding: 10px;
+                            margin: 10pt 0 14pt 15pt;
+                            white-space: pre-wrap;
+                        }
+                        .sign-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 28pt;
+                        }
+                        .cc-box {
+                            margin-top: 30pt;
+                            border-top: 1px solid #dddddd;
+                            padding-top: 8pt;
+                        }
+                    </style>
+                </head>
+                <body>
+                `;
+
+                // Render Kop Surat
+                if (isKop) {
+                    docContent += `
+                    <table class="kop-table">
+                        <tr>
+                            <td style="width: 60pt; text-align: center; vertical-align: middle;">
+                                <span style="font-size: 28pt;">🏛️</span>
+                            </td>
+                            <td style="text-align: center; vertical-align: middle;">
+                                <div style="font-size: 10.5pt; font-weight: bold; text-transform: uppercase;">${kopParent}</div>
+                                <div style="font-size: 12pt; font-weight: bold; text-transform: uppercase; margin-top: 1pt;">${kopUnit}</div>
+                                <div style="font-size: 9pt; font-style: italic; margin-top: 2pt;">"${kopSlogan}"</div>
+                                <div style="font-size: 8pt; margin-top: 2pt;">${kopContact}</div>
+                                <div style="font-size: 8.5pt; color: #1d4ed8; text-decoration: underline; font-weight: bold; margin-top: 1pt;">${kopWeb}</div>
+                            </td>
+                        </tr>
+                    </table>
+                    <div class="kop-line"></div>
+                    `;
+                } else {
+                    docContent += `<div style="height: 30pt;"></div>`;
+                }
+
+                // Date
+                docContent += `
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 14pt;">
+                    <tr>
+                        <td></td>
+                        <td style="width: 250pt; text-align: right; font-weight: normal;">${letterDate}</td>
+                    </tr>
+                </table>
+                `;
+
+                // Metadata Section
+                docContent += `
+                <table class="meta-table">
+                    <tr>
+                        <td class="meta-label">Nomor</td>
+                        <td class="meta-colon">:</td>
+                        <td class="meta-value">${letterNum || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Lampiran</td>
+                        <td class="meta-colon">:</td>
+                        <td class="meta-value">${letterAttach || '-'}</td>
+                    </tr>
+                    <tr>
+                        <td class="meta-label">Perihal</td>
+                        <td class="meta-colon">:</td>
+                        <td class="meta-value" style="font-weight: bold; text-decoration: underline;">${letterSubject}</td>
+                    </tr>
+                </table>
+                `;
+
+                // Recipient
+                docContent += `
+                <div class="recipient-box">
+                    <p style="margin-bottom: 2pt;">Kepada Yang Terhormat,</p>
+                    <p style="font-weight: bold; margin-bottom: 1pt;">${recipientName}</p>
+                    <p style="font-weight: bold; margin-bottom: 1pt;">${recipientCompany}</p>
+                    <p style="font-style: italic; color: #444444; margin-top: 2pt;">${recipientAddress.replace(/\n/g, '<br>')}</p>
+                </div>
+                `;
+
+                // Salutation & Intro
+                docContent += `
+                <p style="margin-bottom: 10pt;">${openingGreeting}</p>
+                <p style="text-indent: 36pt; margin-bottom: 12pt;">${letterIntro}</p>
+                `;
+
+                // Bullet Points
+                if (letterBodyPoints.trim()) {
+                    const cleanPoints = letterBodyPoints.replace(/\n/g, '<br>').replace(/\s/g, '&nbsp;');
+                    docContent += `
+                    <div class="points-container">${cleanPoints}</div>
+                    `;
+                }
+
+                // Closing
+                docContent += `
+                <p style="text-indent: 36pt; margin-bottom: 24pt;">${letterClosing}</p>
+                `;
+
+                // Signatory
+                docContent += `
+                <table class="sign-table">
+                    <tr>
+                        <td></td>
+                        <td style="width: 220pt; text-align: center;">
+                            <p style="margin-bottom: 4pt;">${closingGreeting}</p>
+                            <p style="font-weight: bold; font-size: 10.5pt; margin-bottom: 50pt;">${senderTitle}</p>
+                            <p style="font-weight: bold; text-decoration: underline; margin-bottom: 2pt;">${senderName}</p>
+                            <p style="font-size: 9pt;">${senderId}</p>
+                            <p style="font-size: 8pt; color: #555555; margin-top: 2pt;">${senderExtra.replace(/\n/g, '<br>')}</p>
+                        </td>
+                    </tr>
+                </table>
+                `;
+
+                // Tembusan CC
+                if (ccPoints.trim()) {
+                    docContent += `
+                    <div class="cc-box">
+                        <p style="font-weight: bold; font-size: 8.5pt; text-transform: uppercase; margin-bottom: 4pt; color: #333333;">Tembusan:</p>
+                        <ol style="margin: 0; padding-left: 20px; font-size: 9pt;">
+                    `;
+                    ccPoints.split('\n').forEach(line => {
+                        if (line.trim()) {
+                            const cleanLine = line.replace(/^\d+[\.\s\-]+/g, '');
+                            docContent += `<li style="margin-bottom: 2pt;">${cleanLine}</li>`;
+                        }
+                    });
+                    docContent += `
+                        </ol>
+                    </div>
+                    `;
+                }
+
+                // Close DOM
+                docContent += `
+                </body>
+                </html>
+                `;
+
+                // Generate native Word compatible Blob (using BOM \ufeff for perfect Unicode translation)
+                const convertedBlob = new Blob(['\ufeff', docContent], { type: 'application/msword;charset=utf-8' });
+
+                // Build a safe dynamic filename based on letter subject
+                const safeSubject = letterSubject.replace(/[^a-zA-Z0-9]/g, "_").substring(0, 30);
+                const finalFilename = `${safeSubject || 'Surat_Formal'}_Hendra_Maulidan.doc`;
+
+                // Download execution
+                const downloadLink = document.createElement("a");
+                document.body.appendChild(downloadLink);
+                downloadLink.href = URL.createObjectURL(convertedBlob);
+                downloadLink.download = finalFilename;
+                downloadLink.click();
+                
+                // Cleanup
+                document.body.removeChild(downloadLink);
+                URL.revokeObjectURL(downloadLink.href);
+
+            } catch (error) {
+                console.error("Export error:", error);
+                alert("Gagal mengekspor dokumen: " + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
