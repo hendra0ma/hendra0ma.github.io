@@ -12,14 +12,43 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            50: '#f0f5ff',
-                            100: '#e0ebff',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                            800: '#1e40af',
-                            900: '#1e3a8a',
+                        primary: {
+                            50: '#f8fafc',
+                            100: '#f1f5f9',
+                            200: '#e2e8f0',
+                            300: '#cbd5e1',
+                            400: '#94a3b8',
+                            500: '#64748b',
+                            600: '#475569',
+                            700: '#334155',
+                            800: '#1e293b',
+                            900: '#0f172a',
+                            950: '#020617',
                         },
+                        secondary: {
+                            50: '#fdf8f6',
+                            100: '#f2e8e5',
+                            200: '#eaddd7',
+                            300: '#e0cec7',
+                            400: '#d2bab0',
+                            500: '#bfa094',
+                            600: '#a18072',
+                            700: '#977669',
+                            800: '#846358',
+                            900: '#43302b',
+                        },
+                        accent: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        }
                     },
                     fontFamily: {
                         'serif-formal': ['"Times New Roman"', 'Georgia', 'serif'],
@@ -106,23 +135,23 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+<body class="bg-primary-100 text-primary-800 font-sans antialiased min-h-screen flex flex-col">
 
     <!-- Top Navigation (Header) -->
-    <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+    <header class="no-print bg-white border-b border-primary-200 sticky top-0 z-50 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
         <div class="flex items-center space-x-3">
-            <div class="p-2 bg-blue-600 rounded-lg text-white">
+            <div class="p-2 bg-primary-800 rounded-lg text-white">
                 <i data-lucide="file-text" class="w-6 h-6"></i>
             </div>
             <div>
-                <h1 class="font-bold text-lg text-slate-900 tracking-tight">Formal Letter Generator</h1>
-                <p class="text-xs text-slate-500">Generator Surat Formal & Administrasi Instansi Standar Indonesia</p>
+                <h1 class="font-bold text-lg text-primary-900 tracking-tight">Formal Letter Generator</h1>
+                <p class="text-xs text-primary-500">Generator Surat Formal & Administrasi Instansi Standar Indonesia</p>
             </div>
         </div>
         
         <div class="flex items-center flex-wrap gap-2 md:gap-3 justify-center md:justify-end">
             <!-- Reset Button -->
-            <button onclick="resetFormToDefault()" class="flex items-center space-x-1.5 px-2.5 py-2 text-xs md:text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200">
+            <button onclick="resetFormToDefault()" class="flex items-center space-x-1.5 px-2.5 py-2 text-xs md:text-sm font-medium text-primary-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200">
                 <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
                 <span>Reset Form</span>
             </button>
@@ -134,7 +163,7 @@
             </button> -->
             
             <!-- Quick Print -->
-            <button onclick="window.print()" class="flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs md:text-sm rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5">
+            <button onclick="window.print()" class="flex items-center space-x-2 px-4 py-2 bg-primary-800 hover:bg-primary-900 text-white font-medium text-xs md:text-sm rounded-lg shadow-sm transition-all duration-200 transform hover:-translate-y-0.5">
                 <i data-lucide="printer" class="w-4 h-4"></i>
                 <span>Cetak / Simpan PDF</span>
             </button>
@@ -142,13 +171,13 @@
     </header>
 
     <!-- Mobile Tab Navigation (Only visible on screens < lg) -->
-    <div class="no-print lg:hidden bg-slate-950 p-2 border-b border-slate-800 sticky top-[73px] z-40">
-        <div class="bg-slate-900 p-1 rounded-xl flex max-w-md mx-auto relative">
-            <button id="btn-tab-form" onclick="switchMobileTab('form')" class="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-blue-600 text-white text-xs font-semibold shadow transition-all duration-200">
+    <div class="no-print lg:hidden bg-primary-900 p-2 border-b border-primary-800 sticky top-[73px] z-40">
+        <div class="bg-primary-800 p-1 rounded-xl flex max-w-md mx-auto relative">
+            <button id="btn-tab-form" onclick="switchMobileTab('form')" class="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg bg-primary-700 text-white text-xs font-semibold shadow transition-all duration-200">
                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                 <span>Edit Form</span>
             </button>
-            <button id="btn-tab-preview" onclick="switchMobileTab('preview')" class="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg text-slate-400 text-xs font-semibold hover:text-slate-200 transition-all duration-200">
+            <button id="btn-tab-preview" onclick="switchMobileTab('preview')" class="flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg text-primary-400 text-xs font-semibold hover:text-primary-200 transition-all duration-200">
                 <i data-lucide="eye" class="w-4 h-4"></i>
                 <span>Pratinjau Surat</span>
             </button>
@@ -159,55 +188,55 @@
     <main class="flex-1 flex flex-col lg:flex-row h-[calc(100vh-73px)] lg:h-[calc(100vh-73px)] overflow-hidden">
         
         <!-- Left Panel: Input & Settings (Scrollable) -->
-        <section id="panel-form" class="no-print w-full lg:w-[45%] bg-slate-900 text-slate-100 flex flex-col h-full border-r border-slate-800">
+        <section id="panel-form" class="no-print w-full lg:w-[45%] bg-primary-900 text-primary-100 flex flex-col h-full border-r border-primary-800">
             <!-- Top Controls: Template Selector & Style Settings -->
-            <div class="p-4 bg-slate-950 border-b border-slate-800 space-y-4">
+            <div class="p-4 bg-primary-950 border-b border-primary-800 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div class="w-full">
-                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Pilih Format / Jenis Surat</label>
+                        <label class="block text-xs font-semibold text-primary-400 uppercase tracking-wider mb-1.5">Pilih Format / Jenis Surat</label>
                         <div class="relative">
-                            <select id="letter-template-select" onchange="loadTemplate(this.value)" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer">
-                                <option value="lamaran" class="bg-slate-900 text-white" selected>Surat Lamaran Kerja</option>
-                                <option value="tugas" class="bg-slate-900 text-white">Surat Perintah Tugas (SPT)</option>
-                                <option value="keterangan" class="bg-slate-900 text-white">Surat Keterangan Aktif / Kerja</option>
-                                <option value="undangan" class="bg-slate-900 text-white">Surat Undangan Rapat / Dinas</option>
+                            <select id="letter-template-select" onchange="loadTemplate(this.value)" class="w-full bg-primary-800 border border-primary-700 rounded-lg px-3 py-2 text-sm text-white font-medium focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent cursor-pointer">
+                                <option value="lamaran" class="bg-primary-900 text-white" selected>Surat Lamaran Kerja</option>
+                                <option value="tugas" class="bg-primary-900 text-white">Surat Perintah Tugas (SPT)</option>
+                                <option value="keterangan" class="bg-primary-900 text-white">Surat Keterangan Aktif / Kerja</option>
+                                <option value="undangan" class="bg-primary-900 text-white">Surat Undangan Rapat / Dinas</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 <!-- Customizer Grid Accordion-like Quick Settings -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 text-xs border-t border-slate-800">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 text-xs border-t border-primary-800">
                     <div>
-                        <label class="block text-slate-400 mb-1">Gaya Huruf</label>
-                        <select id="setting-font" onchange="updateCustomizer()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="font-serif-formal" class="bg-slate-900 text-white" selected>Times New Roman</option>
-                            <option value="font-sans-formal" class="bg-slate-900 text-white">Inter / Arial</option>
-                            <option value="font-mono-formal" class="bg-slate-900 text-white">Courier New</option>
+                        <label class="block text-primary-400 mb-1">Gaya Huruf</label>
+                        <select id="setting-font" onchange="updateCustomizer()" class="w-full bg-primary-800 border border-primary-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-accent-500">
+                            <option value="font-serif-formal" class="bg-primary-900 text-white" selected>Times New Roman</option>
+                            <option value="font-sans-formal" class="bg-primary-900 text-white">Inter / Arial</option>
+                            <option value="font-mono-formal" class="bg-primary-900 text-white">Courier New</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">Ukuran Font</label>
-                        <select id="setting-font-size" onchange="updateCustomizer()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="text-xs" class="bg-slate-900 text-white">Sangat Kecil</option>
-                            <option value="text-sm" class="bg-slate-900 text-white" selected>Default (Sedang)</option>
-                            <option value="text-base" class="bg-slate-900 text-white">Besar (16px)</option>
-                            <option value="text-lg" class="bg-slate-900 text-white">Sangat Besar</option>
+                        <label class="block text-primary-400 mb-1">Ukuran Font</label>
+                        <select id="setting-font-size" onchange="updateCustomizer()" class="w-full bg-primary-800 border border-primary-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-accent-500">
+                            <option value="text-xs" class="bg-primary-900 text-white">Sangat Kecil</option>
+                            <option value="text-sm" class="bg-primary-900 text-white" selected>Default (Sedang)</option>
+                            <option value="text-base" class="bg-primary-900 text-white">Besar (16px)</option>
+                            <option value="text-lg" class="bg-primary-900 text-white">Sangat Besar</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">Kop Surat</label>
-                        <select id="setting-kop" onchange="updateKopVisibility()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="true" class="bg-slate-900 text-white">Aktif (Kop Dinas)</option>
-                            <option value="false" class="bg-slate-900 text-white" selected>Tanpa Kop Surat</option>
+                        <label class="block text-primary-400 mb-1">Kop Surat</label>
+                        <select id="setting-kop" onchange="updateKopVisibility()" class="w-full bg-primary-800 border border-primary-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-accent-500">
+                            <option value="true" class="bg-primary-900 text-white">Aktif (Kop Dinas)</option>
+                            <option value="false" class="bg-primary-900 text-white" selected>Tanpa Kop Surat</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-slate-400 mb-1">Jarak Baris</label>
-                        <select id="setting-leading" onchange="updateCustomizer()" class="w-full bg-slate-800 border border-slate-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-500">
-                            <option value="leading-tight" class="bg-slate-900 text-white">Rapat</option>
-                            <option value="leading-normal" class="bg-slate-900 text-white" selected>Normal</option>
-                            <option value="leading-relaxed" class="bg-slate-900 text-white">Lebar</option>
+                        <label class="block text-primary-400 mb-1">Jarak Baris</label>
+                        <select id="setting-leading" onchange="updateCustomizer()" class="w-full bg-primary-800 border border-primary-700 rounded p-1 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-accent-500">
+                            <option value="leading-tight" class="bg-primary-900 text-white">Rapat</option>
+                            <option value="leading-normal" class="bg-primary-900 text-white" selected>Normal</option>
+                            <option value="leading-relaxed" class="bg-primary-900 text-white">Lebar</option>
                         </select>
                     </div>
                 </div>
